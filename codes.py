@@ -3,7 +3,8 @@ import typing
 
 from dataclasses import dataclass
 
-import math
+import graphs
+from graphs import Graph, collapse_loops
 
 Sign = typing.Literal[+1, -1]
 
@@ -17,7 +18,7 @@ HANDED_RIGHT = -1
 @dataclass(frozen=True)
 class PDCodeCrossing:
     """
-    The first indices is the under-entering arc, followed by the other arcs 
+    The first indices is the under-entering arc, followed by the other arcs
     in counter-clockwise order.
     """
     i: int
@@ -67,6 +68,12 @@ class SignedGaussCode:
     def __repr__(self):
         return f"SignedGaussCode({self.components})"
 
+    def __hash__(self):
+        return hash(tuple(
+            tuple(crossing.id for crossing in component)
+            for component in self.components
+        ))
+
     def writhe(self):
         """
         Calculate the writhe of the signed Gauss code.
@@ -78,14 +85,14 @@ class SignedGaussCode:
             for c in component
         ) // 2
 
-    def reverse(self):
+    def reverse(self, ids: typing.Literal['*'] | list[int] = '*'):
         """
         Reverse the signed Gauss code.
         :return: Reversed signed Gauss code
         """
         return SignedGaussCode([
-            list(reversed(component))
-            for component in self.components
+            list(reversed(component)) if ids != '*' and i in ids else component
+            for i, component in enumerate(self.components)
         ])
 
     def mirror(self):
@@ -97,6 +104,54 @@ class SignedGaussCode:
             [c.opposite() for c in reversed(component)]
             for component in self.components
         ])
+
+    def connected_components(self) -> list[list[int]]:
+        crossing_indices = {
+            crossing: (i, j)
+            for i, component in enumerate(self.components)
+            for j, crossing in enumerate(component)
+        }
+
+        component_adj: list[set[int]] = [
+            set() for _ in range(len(self.components))
+        ]
+
+        for i1, component in enumerate(self.components):
+            for j1, crossing in enumerate(component):
+                over_crossing = crossing.opposite()
+                i2, _ = crossing_indices[over_crossing]
+                component_adj[i1].add(i2)
+
+        return graphs.connected_components(
+            get_vertices=lambda: range(len(self.components)),
+            get_neighbors=lambda i: component_adj[i]
+        )
+
+    def unlinked_components(self) -> Graph[tuple[int, ...]]:
+        # print(self)
+
+        # graph where "i -> j" iff "i overlies j"
+        graph_of_overlies: Graph[int] = {}
+
+        crossing_indices = {
+            crossing: (i, j)
+            for i, component in enumerate(self.components)
+            for j, crossing in enumerate(component)
+        }
+
+        for i1, component in enumerate(self.components):
+            graph_of_overlies[i1] = set()
+            for j1, crossing in enumerate(component):
+                over_crossing = crossing.opposite()
+
+                i2, _ = crossing_indices[over_crossing]
+                if i1 == i2:
+                    continue
+
+                if crossing.is_over():
+                    graph_of_overlies[i1].add(i2)
+
+        return collapse_loops(graph_of_overlies)
 
     def to_std_unknot(self) -> SignedGaussCode:
         visited_crossings: set[int] = set()
@@ -148,6 +203,54 @@ class SignedGaussCode:
 
         return switched_crossings
 
+    def split_component(self, i: int) -> tuple[SignedGaussCode, SignedGaussCode, list[int]]:
+        """
+        Split the component at index i into K_i and K - K_i
+        """
+
+        target_all_ids = set(
+            crossing.id
+            for crossing in self.components[i]
+        )
+
+        target_own_ids = set(
+            crossing.id
+            for crossing in self.components[i]
+            if crossing.is_over()
+        ).intersection(
+            set(
+                crossing.id
+                for crossing in self.components[i]
+                if crossing.is_under()
+            )
+        )
+
+        component_i_without_others = SignedGaussCode([
+            [
+                crossing
+                for crossing in self.components[i]
+                if crossing.id in target_own_ids
+            ]
+        ])
+
+        complement_components = SignedGaussCode([
+            [
+                crossing
+                for crossing in self.components[j]
+                if crossing.id not in target_all_ids
+            ]
+            for j in range(len(self.components))
+            if j != i
+        ])
+
+        switching_sequence = [
+            crossing.id
+            for crossing in self.components[i]
+            if crossing.is_under()
+        ]
+
+        return component_i_without_others, complement_components, switching_sequence
+
     def apply_switching_sequence(
         self, switching_sequence: list[int]
     ) -> SignedGaussCode:
@@ -177,15 +280,15 @@ class SignedGaussCode:
             )
         )
 
-        print(over_idx, over_crossing)
-        print(under_idx, under_crossing)
+        # print(over_idx, over_crossing)
+        # print(under_idx, under_crossing)
 
         assert over_crossing.handedness == under_crossing.handedness
 
         is_same_component = over_idx[0] == under_idx[0]
         handedness = over_crossing.handedness
 
-        print(f"splice case: h, {is_same_component}, {handedness}")
+        # print(f"splice case: h, {is_same_component}, {handedness}")
 
         if is_same_component:
             self_crossing_component = self.components[over_idx[0]]
@@ -264,15 +367,15 @@ class SignedGaussCode:
             )
         )
 
-        print(over_idx, over_crossing)
-        print(under_idx, under_crossing)
+        #  print(over_idx, over_crossing)
+        #  print(under_idx, under_crossing)
 
         assert over_crossing.handedness == under_crossing.handedness
 
         is_same_component = over_idx[0] == under_idx[0]
         handedness = over_crossing.handedness
 
-        print(f"splice case: v, {is_same_component}, {handedness}")
+        #  print(f"splice case: v, {is_same_component}, {handedness}")
 
         if is_same_component:
             self_crossing_component = self.components[over_idx[0]]
@@ -382,6 +485,8 @@ class SignedGaussCode:
             for j, crossing in enumerate(component)
         }
 
+        # print(shadow)
+
         components: list[list[SignedGaussCodeCrossing]] = [
             [
                 (0, 0) for _ in range(len(component))
@@ -441,6 +546,13 @@ class PDCode:
                 paths[l] = j
             else:
                 paths[j] = l
+
+        # print(paths)
+
+        # return graphs.connected_components(
+        #     get_vertices=lambda: paths.keys(),
+        #     get_neighbors=lambda i: [paths[i]]
+        # )
 
         components = []
         while len(paths) > 0:

@@ -2,10 +2,6 @@ from codes import SignedGaussCode, PDCode
 
 
 def test_trefoil_pd_writhe():
-    # trefoil_pd = codes.PDCode.parse_mathematica("""
-    #     PD[X[3,6,4,1], X[5,2,6,3], X[1,4,2,5]]
-    # """)
-
     trefoil_pd = PDCode.from_tuples(
         [(3, 6, 4, 1), (5, 2, 6, 3), (1, 4, 2, 5)]
     )
@@ -14,12 +10,6 @@ def test_trefoil_pd_writhe():
 
 
 def test_trefoil_sgc_writhe():
-    # trefoil_sgc = SignedGaussCode.from_pd(
-    #     PDCode.parse_mathematica("""
-    #         PD[X[3,6,4,1], X[5,2,6,3], X[1,4,2,5]]
-    #     """)
-    # )
-
     trefoil_sgc = PDCode.from_tuples(
         [(3, 6, 4, 1), (5, 2, 6, 3), (1, 4, 2, 5)]
     ).to_signed_gauss_code()
@@ -74,3 +64,101 @@ def test_splices_infinity():
 
     assert link_sgc.splice_v(1) == SignedGaussCode.from_tuples([[], []])
     assert link_sgc.splice_h(1) == SignedGaussCode.from_tuples([[]])
+
+
+def test_connected_components():
+    link_sgc = SignedGaussCode.from_tuples([
+        [(1, -1), (-4, -1), (2, -1), (-1, -1), (-6, -1), (3, -1),
+         (4, -1), (-2, -1)],
+        [(-3, -1), (5, -1), (-5, -1), (6, -1)],
+        [(7, -1), (-7, -1)]
+    ])
+
+    assert link_sgc.connected_components() == [[0, 1], [2]]
+
+
+def test_unlinked_components_1():
+    link_sgc = SignedGaussCode.from_tuples([
+        [(1, -1), (-4, -1), (2, -1), (-1, -1), (-6, -1), (3, -1),
+         (4, -1), (-2, -1)],
+        [(-3, -1), (5, -1), (-5, -1), (6, -1)],
+    ])
+
+    assert link_sgc.unlinked_components() == {
+        (0, 1,): set(),
+    }
+
+
+def test_unlinked_components_2():
+    link_sgc = SignedGaussCode.from_tuples([
+        [(1, -1), (-4, -1), (2, -1), (-1, -1), (-6, -1), (3, -1),
+         (4, -1), (-2, -1)],
+        [(-3, -1), (5, -1), (-5, -1), (6, -1)],
+        [(7, -1), (-7, -1)]
+    ])
+
+    assert link_sgc.unlinked_components() == {
+        (0, 1,): set(),
+        (2,): set(),
+    }
+
+
+def test_unlinked_components_3():
+    # link from ./assets/complex-overlies-1.png
+    link_sgc = SignedGaussCode.from_tuples([
+        [(5, -1), (13, -1), (7, 1), (14, 1)],
+        [(10, -1), (-1, -1), (-17, 1), (-5, -1), (-14, 1), (12, 1)],
+        [(9, -1), (-13, -1), (-7, 1), (-8, -1)],
+        [(-9, -1), (-10, -1), (-12, 1), (8, -1)],
+        [(6, -1), (11, 1), (1, -1), (17, 1)],
+        [(18, 1), (-15, -1), (-3, 1), (16, -1)],
+        [(3, 1), (-4, 1), (-2, -1), (15, -1)],
+        [(-6, -1), (-11, 1), (4, 1), (2, -1), (-18, 1), (-16, -1)]
+    ])
+
+    components = link_sgc.unlinked_components()
+
+    print(components)
+
+    assert components == {
+        (0,): {(2, 3), (1,)},
+        (1,): {(2, 3)},
+        (2, 3): set(),
+        (4,): {(1,), (5, 7, 6)},
+        (5, 7, 6): set()
+    }
+
+
+def test_split_components_1():
+    # link from ./assets/complex-overlies-1.png
+    link_sgc = SignedGaussCode.from_tuples([
+        [(5, -1), (13, -1), (7, 1), (14, 1)],
+        [(10, -1), (-1, -1), (-17, 1), (-5, -1), (-14, 1), (12, 1)],
+        [(9, -1), (-13, -1), (-7, 1), (-8, -1)],
+        [(-9, -1), (-10, -1), (-12, 1), (8, -1)],
+        [(6, -1), (11, 1), (1, -1), (17, 1)],
+        [(18, 1), (-15, -1), (-3, 1), (16, -1)],
+        [(3, 1), (-4, 1), (-2, -1), (15, -1)],
+        [(-6, -1), (-11, 1), (4, 1), (2, -1), (-18, 1), (-16, -1)]
+    ])
+
+    components = link_sgc.unlinked_components()
+    assert components == {
+        (0,): {(2, 3), (1,)},
+        (1,): {(2, 3)},
+        (2, 3): set(),
+        (4,): {(1,), (5, 7, 6)},
+        (5, 7, 6): set()
+    }
+
+    top_comp, others, seq = link_sgc.split_component(4)
+
+    assert len(top_comp.unlinked_components()) == 1
+    assert len(others.unlinked_components()) == 4
+    assert seq == []
+
+    top_comp, others, seq = link_sgc.split_component(5)
+
+    assert len(top_comp.unlinked_components()) == 1
+    assert len(others.unlinked_components()) == 6
+    assert seq == [15, 3]
