@@ -9,6 +9,12 @@ class Monomial:
     """
     variables: list[tuple[str, int]]
 
+    def simplify(self):
+        """
+        Simplifies the monomial by removing zero exponents.
+        """
+        return Monomial([var for var in self.variables if var[1] != 0])
+
     def __mul__(self, other):
         if isinstance(other, Monomial):
             new_vars = defaultdict(int)
@@ -16,7 +22,7 @@ class Monomial:
                 new_vars[var] += exp
             for var, exp in other.variables:
                 new_vars[var] += exp
-            return Monomial(sorted([(var, exp) for var, exp in new_vars.items()]))
+            return Monomial(sorted([(var, exp) for var, exp in new_vars.items()])).simplify()
         else:
             return NotImplemented
 
@@ -26,7 +32,7 @@ class Monomial:
 
     def __pow__(self, exponent):
         if isinstance(exponent, int):
-            return Monomial(sorted([(var, exp * exponent) for var, exp in self.variables]))
+            return Monomial(sorted([(var, exp * exponent) for var, exp in self.variables])).simplify()
         else:
             return NotImplemented
 
@@ -45,16 +51,36 @@ class Term:
     coef: int
     monomial: Monomial
 
+    @staticmethod
+    def zero():
+        return Term(0, Monomial([]))
+
+    @staticmethod
+    def one():
+        return Term(1, Monomial([]))
+
+    def simplify(self):
+        """
+        Simplifies the term by removing zero coefficient.
+        """
+        return Term(self.coef, self.monomial.simplify())
+
     def __mul__(self, other):
         if isinstance(other, Term):
-            return Term(self.coef * other.coef, self.monomial * other.monomial)
+            return Term(self.coef * other.coef, self.monomial * other.monomial).simplify()
         elif isinstance(other, (int, float)):
-            return Term(int(self.coef * other), self.monomial)
+            return Term(int(self.coef * other), self.monomial).simplify()
         else:
             return NotImplemented
 
     def __rmul__(self, other):
         return self.__mul__(other)
+
+    def __pow__(self, exponent):
+        if isinstance(exponent, int):
+            return Term(self.coef ** exponent, self.monomial ** exponent).simplify()
+        else:
+            return NotImplemented
 
     def __str__(self):
         if self.coef == 0:

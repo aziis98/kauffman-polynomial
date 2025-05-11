@@ -1,17 +1,25 @@
-from polynomials import var, Polynomial
+# from polynomials import var, Polynomial
 
 from codes import SignedGaussCode
 
 
-a = var("a")
-z = var("z")
+# a = var("a")
+# z = var("z")
+
+from sympy import symbols, Poly, poly
+
+a, z = symbols("a z")
 
 # increasing lists for l
 # [l[:i+1] for i in range(len(l))]
 
 
-def kauffman_polynomial(link: SignedGaussCode) -> Polynomial:
-    pass
+def kauffman_polynomial(link: SignedGaussCode):
+    unknotting_seq = link.std_unknot_switching_sequence()
+    if len(unknotting_seq) == 0:
+        return a ** link.writhe()
+    else:
+        pass
 
 
 def move_A(link: SignedGaussCode, switching_seq: list[int], index: int) -> SignedGaussCode:
@@ -28,8 +36,8 @@ def move_B(link: SignedGaussCode, switching_seq: list[int], index: int) -> Signe
     )
 
 
-def sum_switches(link: SignedGaussCode, switching_seq: list[int]) -> Polynomial:
-    result = Polynomial([])
+def sum_switches(link: SignedGaussCode, switching_seq: list[int]):
+    result = 1
 
     # this is from 0 to the last switch in switching_seq
     for i in range(len(switching_seq)):
