@@ -47,7 +47,7 @@ def kauffman_polynomial(link: SignedGaussCode):
                 )) / 2
             else:
                 depth_print("[i] multiple linked components")
-                result = 1
+                result = 0
 
                 for i in single_linked_component:
                     target_component, others, seq = link.split_component(i)
