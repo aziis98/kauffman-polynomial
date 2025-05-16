@@ -12,7 +12,7 @@ d = (a + 1 / a) / z - 1
 @log_input_output
 @cache
 def kauffman_polynomial(link: SignedGaussCode):
-    depth_print("[i] not cached...")
+    depth_print("ℹ️  not cached...")
 
     if len(link.components) == 0:
         return 0
@@ -23,18 +23,20 @@ def kauffman_polynomial(link: SignedGaussCode):
 
     if len(disconnected_components) == 1:
         single_linked_component = disconnected_components[0]
+
         unknotting_seq = link.std_unknot_switching_sequence()
 
-        if len(unknotting_seq) == 0:
+        link_rev = link.reverse()
+        unknotting_seq_rev = link_rev.std_unknot_switching_sequence()
+
+        if len(unknotting_seq) == 0 or len(unknotting_seq_rev) == 0:
             # if the link is in its standard unknot form
-            depth_print("[i] standard unknot form")
+            depth_print("ℹ️  standard unknot form")
             return a ** link.writhe()
         else:
             # there is a single tangle, cases based on how many strands there are
             if len(single_linked_component) == 1:
-                depth_print("[i] single knotted component")
-                unknotting_seq_rev = unknotting_seq[::-1]
-                link_rev = link.reverse()
+                depth_print("ℹ️  single knotted component")
 
                 return ((
                     (-1) ** (len(unknotting_seq) + 1)
@@ -46,38 +48,66 @@ def kauffman_polynomial(link: SignedGaussCode):
                     + z * sum_switches(link_rev, unknotting_seq_rev)
                 )) / 2
             else:
-                depth_print("[i] multiple linked components")
+                depth_print("ℹ️  multiple linked components")
                 result = 0
 
                 for i in single_linked_component:
                     target_component, others, seq = link.split_component(i)
 
+                    depth_print(f"ℹ️  sign: {(-1) ** len(seq)}")
+
                     result += (
-                        (-1) ** (len(seq) + 1) * d
+                        (-1) ** len(seq) * d
                         * kauffman_polynomial(target_component)
                         * kauffman_polynomial(others)
                     ) + (
                         z * sum_switches(link, seq)
                     )
 
-                    seq_rev = seq[::-1]
+                    link_rev = link.reverse(ids=[i])
+                    target_component, others, seq = link_rev.split_component(i)
+
+                    depth_print(f"ℹ️  sign: {(-1) ** len(seq)}")
 
                     result += (
-                        (-1) ** (len(seq_rev) + 1) * d
-                        * kauffman_polynomial(target_component.reverse())
+                        (-1) ** len(seq) * d
+                        * kauffman_polynomial(target_component)
                         * kauffman_polynomial(others)
                     ) + (
-                        z * sum_switches(link.reverse(ids=[i]), seq_rev)
+                        z * sum_switches(link_rev, seq)
                     )
+
+                    depth_print(f"ℹ️  result of component {i} ~> {result}")
 
                 return result / (2 * len(single_linked_component))
     else:
-        depth_print("[i] multiple unlinked components")
+        depth_print("ℹ️  multiple unlinked components")
 
         result = 1
         for k, component_ids in enumerate(disconnected_components):
+            own_crossings = set(
+                crossing.id
+                for i in component_ids
+                for crossing in link.components[i]
+                if crossing.is_over()
+            ).intersection(
+                set(
+                    crossing.id
+                    for i in component_ids
+                    for crossing in link.components[i]
+                    if crossing.is_under()
+                )
+            )
+
             new_link = SignedGaussCode(
-                [link.components[i] for i in component_ids]
+                [
+                    [
+                        c
+                        for c in link.components[i]
+                        if c.id in own_crossings
+                    ]
+                    for i in component_ids
+                ]
             )
 
             if k > 0:

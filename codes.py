@@ -6,7 +6,9 @@ from dataclasses import dataclass
 import graphs
 from graphs import Graph, collapse_loops
 
+
 Sign = typing.Literal[+1, -1]
+
 
 CROSSING_OVER = +1
 CROSSING_UNDER = -1
@@ -43,19 +45,28 @@ class SignedGaussCodeCrossing:
     handedness: Sign
 
     def is_over(self) -> bool:
-        return self.over_under == +1
+        return self.over_under == CROSSING_OVER
 
     def is_under(self) -> bool:
-        return self.over_under == -1
+        return self.over_under == CROSSING_UNDER
 
     def is_left(self) -> bool:
-        return self.sign == +1
+        return self.handedness == HANDED_LEFT
 
     def is_right(self) -> bool:
-        return self.sign == -1
+        return self.handedness == HANDED_RIGHT
 
-    def opposite(self) -> SignedGaussCodeCrossing:
-        return SignedGaussCodeCrossing(self.id, -self.over_under, self.handedness)
+    def opposite(self, invert_handedness: bool = False) -> SignedGaussCodeCrossing:
+        """
+        Return the opposite crossing with same id and handedness.
+        """
+        return SignedGaussCodeCrossing(self.id, -self.over_under, -self.handedness if invert_handedness else self.handedness)
+
+    def flip_handedness(self) -> SignedGaussCodeCrossing:
+        """
+        Return the crossing with same id and opposite handedness.
+        """
+        return SignedGaussCodeCrossing(self.id, self.over_under, -self.handedness)
 
     def __repr__(self):
         return f"({self.id * self.over_under}, {self.handedness})"
@@ -66,7 +77,7 @@ class SignedGaussCode:
     components: list[list[SignedGaussCodeCrossing]]
 
     def __repr__(self):
-        return f"SignedGaussCode({self.components})"
+        return f"{self.components}"
 
     def __hash__(self):
         return hash(tuple(
@@ -90,10 +101,50 @@ class SignedGaussCode:
         Reverse the signed Gauss code.
         :return: Reversed signed Gauss code
         """
-        return SignedGaussCode([
-            list(reversed(component)) if ids != '*' and i in ids else component
-            for i, component in enumerate(self.components)
-        ])
+        if ids == '*':
+            return SignedGaussCode([
+                list(reversed(component))
+                for component in self.components
+            ])
+        else:
+            assert len(ids) == 1
+
+            crossing_components = {
+                crossing.id: set()
+                for component in self.components
+                for crossing in component
+            }
+
+            for i, component in enumerate(self.components):
+                for crossing in component:
+                    crossing_components[crossing.id].add(i)
+
+            assert all(
+                len(crossing_components[crossing.id]) in (1, 2)
+                for crossing in self.components[ids[0]]
+            )
+
+            reverse_crossing_ids = set(
+                crossing.id
+                for i, component in enumerate(self.components)
+                if i in ids
+                for crossing in component
+            )
+
+            # print(reverse_crossing_ids)
+
+            return SignedGaussCode([
+                [
+                    (
+                        c.flip_handedness()
+                        if c.id in reverse_crossing_ids and len(crossing_components[c.id]) > 1
+                        else c
+                    ) for c in (
+                        reversed(component) if i in ids else component
+                    )
+                ]
+                for i, component in enumerate(self.components)
+            ])
 
     def mirror(self):
         """
@@ -101,7 +152,7 @@ class SignedGaussCode:
         :return: Mirrored signed Gauss code
         """
         return SignedGaussCode([
-            [c.opposite() for c in reversed(component)]
+            [c.opposite(invert_handedness=True) for c in reversed(component)]
             for component in self.components
         ])
 
@@ -164,14 +215,18 @@ class SignedGaussCode:
                 if crossing.id not in visited_crossings:
                     if crossing.is_under():
                         # make it an over crossing
-                        new_component.append(crossing.opposite())
+                        new_component.append(
+                            crossing.opposite(invert_handedness=True)
+                        )
                         switched_crossings.add(crossing.id)
                     else:
                         new_component.append(crossing)
                     visited_crossings.add(crossing.id)
                 else:
                     if crossing.id in switched_crossings:
-                        new_component.append(crossing.opposite())
+                        new_component.append(
+                            crossing.opposite(invert_handedness=True)
+                        )
                     else:
                         new_component.append(crossing)
             new_components.append(new_component)
@@ -261,7 +316,10 @@ class SignedGaussCode:
         """
         return SignedGaussCode([
             [
-                crossing.opposite() if crossing.id in switching_sequence else crossing
+                crossing.opposite(
+                    invert_handedness=True
+                )
+                if crossing.id in switching_sequence else crossing
                 for crossing in component
             ]
             for component in self.components
@@ -444,7 +502,9 @@ class SignedGaussCode:
     def switch_crossing(self, id: int):
         return SignedGaussCode([
             [
-                crossing.opposite() if crossing.id == id else crossing
+                crossing.opposite(
+                    invert_handedness=True
+                ) if crossing.id == id else crossing
                 for crossing in component
             ]
             for component in self.components
@@ -487,9 +547,9 @@ class SignedGaussCode:
 
         # print(shadow)
 
-        components: list[list[SignedGaussCodeCrossing]] = [
+        components: list[list[SignedGaussCodeCrossing | None]] = [
             [
-                (0, 0) for _ in range(len(component))
+                None for _ in range(len(component))
             ] for component in shadow
         ]
 
@@ -513,7 +573,7 @@ class SignedGaussCode:
             components[over_cc_idx][over_crossing_idx] = over_crossing
             components[under_cc_idx][under_crossing_idx] = over_crossing.opposite()
 
-        return SignedGaussCode(components)
+        return SignedGaussCode(components)  # type: ignore
 
 
 class PDCode:

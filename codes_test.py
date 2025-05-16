@@ -23,7 +23,7 @@ def test_trefoil_sgc_is_std_unknot():
     )
 
     trefoil_sgc_unknot = SignedGaussCode.from_tuples(
-        [[(1, -1), (3, -1), (2, -1), (-1, -1), (-3, -1), (-2, -1)]]
+        [[(1, -1), (3, 1), (2, -1), (-1, -1), (-3, 1), (-2, -1)]]
     )
 
     assert trefoil_sgc.to_std_unknot() == trefoil_sgc_unknot
@@ -35,12 +35,18 @@ def test_link_1_is_std_unknot():
          (2, 7, 3, 8), (11, 10, 12, 11), (5, 12, 6, 9)]
     ).to_signed_gauss_code()
 
+    print(link_sgc)
+
     l1 = link_sgc.std_unknot_switching_sequence()
     print(l1)
 
     manual_switched = link_sgc
     for i in l1:
         manual_switched = manual_switched.switch_crossing(i)
+
+    print(link_sgc.to_std_unknot())
+    print(link_sgc.apply_switching_sequence(l1))
+    print(manual_switched)
 
     assert link_sgc.to_std_unknot() == link_sgc.apply_switching_sequence(l1)
     assert link_sgc.to_std_unknot() == manual_switched
