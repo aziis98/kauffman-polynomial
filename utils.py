@@ -4,6 +4,13 @@ import functools
 _global_depth = 0
 
 
+def sorted_tuple(t, key=None):
+    """
+    Sort a tuple and returns it as a tuple for easy destructuring.
+    """
+    return tuple(sorted(t, key=key))
+
+
 def depth_print(*args):
     """
     Just print but with depth and tree symbols.
@@ -41,8 +48,13 @@ def log_input_output(func):
             result = func(*args, **kwargs)
             _global_depth -= 1  # Decrement after function call, back to call_prefix level
 
+            # try to simplify if sympy object
+            new_result = result
+            if hasattr(result, "simplify"):
+                new_result = result.simplify()
+
             print(
-                f"{call_prefix}└─▶ {result!r}"
+                f"{call_prefix}└─▶ {new_result!r}"
             )
             return result
         except Exception as e:

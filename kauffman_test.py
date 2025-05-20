@@ -1,4 +1,4 @@
-from codes import SignedGaussCode, PDCode
+from codes import SGCode, PDCode
 from kauffman import kauffman_polynomial
 from sympy import symbols, poly, simplify, init_printing, factor
 
@@ -10,21 +10,21 @@ init_printing(use_unicode=True)
 
 def test_kauffman_trivial():
     # single unknot
-    link_sgc = SignedGaussCode.from_tuples([[]])
+    link_sgc = SGCode.from_tuples([[]])
 
     assert kauffman_polynomial(link_sgc) == 1
 
 
 def test_kauffman_trivial_2():
     # two unknots
-    link_sgc = SignedGaussCode.from_tuples([[], []])
+    link_sgc = SGCode.from_tuples([[], []])
 
     assert kauffman_polynomial(link_sgc) == d
 
 
 def test_kauffman_trivial_3():
     # three unknots
-    link_sgc = SignedGaussCode.from_tuples([[], [], []])
+    link_sgc = SGCode.from_tuples([[], [], []])
 
     assert kauffman_polynomial(link_sgc) == d * d
 
@@ -35,25 +35,25 @@ def test_kauffman_infinity():
     """
 
     assert kauffman_polynomial(
-        SignedGaussCode.from_tuples(
+        SGCode.from_tuples(
             [[(1, +1), (-1, +1)]]
         )
     ) == a ** +1
 
     assert kauffman_polynomial(
-        SignedGaussCode.from_tuples(
+        SGCode.from_tuples(
             [[(1, -1), (-1, -1)]]
         )
     ) == a ** -1
 
     assert kauffman_polynomial(
-        SignedGaussCode.from_tuples(
+        SGCode.from_tuples(
             [[(-1, 1), (1, 1)]]
         )
     ) == a ** +1
 
     assert kauffman_polynomial(
-        SignedGaussCode.from_tuples(
+        SGCode.from_tuples(
             [[(-1, -1), (1, -1)]]
         )
     ) == a ** -1
@@ -61,7 +61,7 @@ def test_kauffman_infinity():
 
 def test_kauffman_hopf():
     # hopf
-    link_sgc = SignedGaussCode.from_tuples([
+    link_sgc = SGCode.from_tuples([
         [(+1, -1), (-2, -1)],
         [(-1, -1), (+2, -1)],
     ])
@@ -75,9 +75,31 @@ def test_kauffman_hopf():
 
 def test_kauffman_hopf_mirror():
     # hopf mirror
-    link_sgc = SignedGaussCode.from_tuples([
+    link_sgc = SGCode.from_tuples([
         [(+1, +1), (-2, +1)],
         [(-1, +1), (+2, +1)],
+    ])
+
+    L_hopf = simplify(kauffman_polynomial(link_sgc))
+    print(L_hopf)
+
+    assert L_hopf == (-(a + 1/a)/z + 1 + (a + 1/a)*z).simplify()
+
+    # hopf mirror different numbers
+    link_sgc = SGCode.from_tuples([
+        [(+1, +1), (-2, +1)],
+        [(+2, +1), (-1, +1)]
+    ])
+
+    L_hopf = simplify(kauffman_polynomial(link_sgc))
+    print(L_hopf)
+
+    assert L_hopf == (-(a + 1/a)/z + 1 + (a + 1/a)*z).simplify()
+
+    # hopf mirror 1-rotated
+    link_sgc = SGCode.from_tuples([
+        [(-2, +1), (+1, +1)],
+        [(+2, +1), (-1, +1)]
     ])
 
     L_hopf = simplify(kauffman_polynomial(link_sgc))
@@ -88,7 +110,7 @@ def test_kauffman_hopf_mirror():
 
 def test_kauffman_trefoil():
     # trefoil
-    link_sgc = SignedGaussCode.from_tuples([
+    link_sgc = SGCode.from_tuples([
         [(+1, +1), (-2, +1), (+3, +1),
          (-1, +1), (+2, +1), (-3, +1)]
     ])

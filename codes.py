@@ -6,6 +6,8 @@ from dataclasses import dataclass
 import graphs
 from graphs import Graph, collapse_loops
 
+from utils import sorted_tuple
+
 
 Sign = typing.Literal[+1, -1]
 
@@ -39,7 +41,7 @@ class PDCodeCrossing:
 
 
 @dataclass(frozen=True)
-class SignedGaussCodeCrossing:
+class SGCodeCrossing:
     id: int
     over_under: Sign
     handedness: Sign
@@ -56,25 +58,31 @@ class SignedGaussCodeCrossing:
     def is_right(self) -> bool:
         return self.handedness == HANDED_RIGHT
 
-    def opposite(self, invert_handedness: bool = False) -> SignedGaussCodeCrossing:
+    def opposite(self) -> SGCodeCrossing:
         """
         Return the opposite crossing with same id and handedness.
         """
-        return SignedGaussCodeCrossing(self.id, -self.over_under, -self.handedness if invert_handedness else self.handedness)
+        return SGCodeCrossing(self.id, -self.over_under, self.handedness)
 
-    def flip_handedness(self) -> SignedGaussCodeCrossing:
+    def switch(self) -> SGCodeCrossing:
+        """
+        Return the crossing with same id and opposite over/under, this also flips the handedness.
+        """
+        return SGCodeCrossing(self.id, -self.over_under, -self.handedness)
+
+    def flip_handedness(self) -> SGCodeCrossing:
         """
         Return the crossing with same id and opposite handedness.
         """
-        return SignedGaussCodeCrossing(self.id, self.over_under, -self.handedness)
+        return SGCodeCrossing(self.id, self.over_under, -self.handedness)
 
     def __repr__(self):
         return f"({self.id * self.over_under}, {self.handedness})"
 
 
 @dataclass(frozen=True)
-class SignedGaussCode:
-    components: list[list[SignedGaussCodeCrossing]]
+class SGCode:
+    components: list[list[SGCodeCrossing]]
 
     def __repr__(self):
         return f"{self.components}"
@@ -102,7 +110,7 @@ class SignedGaussCode:
         :return: Reversed signed Gauss code
         """
         if ids == '*':
-            return SignedGaussCode([
+            return SGCode([
                 list(reversed(component))
                 for component in self.components
             ])
@@ -133,7 +141,7 @@ class SignedGaussCode:
 
             # print(reverse_crossing_ids)
 
-            return SignedGaussCode([
+            return SGCode([
                 [
                     (
                         c.flip_handedness()
@@ -151,8 +159,8 @@ class SignedGaussCode:
         Mirror the signed Gauss code.
         :return: Mirrored signed Gauss code
         """
-        return SignedGaussCode([
-            [c.opposite(invert_handedness=True) for c in reversed(component)]
+        return SGCode([
+            [c.switch() for c in reversed(component)]
             for component in self.components
         ])
 
@@ -204,34 +212,30 @@ class SignedGaussCode:
 
         return collapse_loops(graph_of_overlies)
 
-    def to_std_unknot(self) -> SignedGaussCode:
-        visited_crossings: set[int] = set()
-        switched_crossings: set[int] = set()
+    # def to_std_unknot(self) -> SGCode:
+    #     visited_crossings: set[int] = set()
+    #     switched_crossings: set[int] = set()
 
-        new_components = []
-        for component in self.components:
-            new_component = []
-            for crossing in component:
-                if crossing.id not in visited_crossings:
-                    if crossing.is_under():
-                        # make it an over crossing
-                        new_component.append(
-                            crossing.opposite(invert_handedness=True)
-                        )
-                        switched_crossings.add(crossing.id)
-                    else:
-                        new_component.append(crossing)
-                    visited_crossings.add(crossing.id)
-                else:
-                    if crossing.id in switched_crossings:
-                        new_component.append(
-                            crossing.opposite(invert_handedness=True)
-                        )
-                    else:
-                        new_component.append(crossing)
-            new_components.append(new_component)
+    #     new_components = []
+    #     for component in self.components:
+    #         new_component = []
+    #         for crossing in component:
+    #             if crossing.id not in visited_crossings:
+    #                 if crossing.is_under():
+    #                     # make it an over crossing
+    #                     new_component.append(crossing.switch())
+    #                     switched_crossings.add(crossing.id)
+    #                 else:
+    #                     new_component.append(crossing)
+    #                 visited_crossings.add(crossing.id)
+    #             else:
+    #                 if crossing.id in switched_crossings:
+    #                     new_component.append(crossing.switch())
+    #                 else:
+    #                     new_component.append(crossing)
+    #         new_components.append(new_component)
 
-        return SignedGaussCode(new_components)
+    #     return SGCode(new_components)
 
     def is_component_overling(self, i: int) -> bool:
         own_crossings = set(
@@ -258,7 +262,7 @@ class SignedGaussCode:
 
         return switched_crossings
 
-    def split_component(self, i: int) -> tuple[SignedGaussCode, SignedGaussCode, list[int]]:
+    def split_component(self, i: int) -> tuple[SGCode, SGCode, list[int]]:
         """
         Split the component at index i into K_i and K - K_i
         """
@@ -280,7 +284,7 @@ class SignedGaussCode:
             )
         )
 
-        component_i_without_others = SignedGaussCode([
+        component_i_without_others = SGCode([
             [
                 crossing
                 for crossing in self.components[i]
@@ -288,7 +292,7 @@ class SignedGaussCode:
             ]
         ])
 
-        complement_components = SignedGaussCode([
+        complement_components = SGCode([
             [
                 crossing
                 for crossing in self.components[j]
@@ -308,61 +312,92 @@ class SignedGaussCode:
 
     def apply_switching_sequence(
         self, switching_sequence: list[int]
-    ) -> SignedGaussCode:
+    ) -> SGCode:
         """
         Apply a switching sequence to the signed Gauss code.
         :param switching_sequence: Switching sequence
         :return: Signed Gauss code
         """
-        return SignedGaussCode([
+        return SGCode([
             [
-                crossing.opposite(
-                    invert_handedness=True
-                )
+                crossing.switch()
                 if crossing.id in switching_sequence else crossing
                 for crossing in component
             ]
             for component in self.components
         ])
 
-    def splice_h(self, id: int):
-        (under_idx, under_crossing), (over_idx, over_crossing) = tuple(
-            sorted(
-                (
-                    ((i, j), crossing)
-                    for i, component in enumerate(self.components)
-                    for j, crossing in enumerate(component)
-                    if crossing.id == id
-                ),
-                key=lambda c: c[1].over_under
-            )
-        )
+    def get_crossing_handedness(self, id: int) -> Sign:
+        crossing_indices = [
+            (i, j, crossing)
+            for i, component in enumerate(self.components)
+            for j, crossing in enumerate(component)
+            if crossing.id == id
+        ]
 
-        # print(over_idx, over_crossing)
-        # print(under_idx, under_crossing)
+        assert len(crossing_indices) == 2
+        assert len(set(c.handedness for _, _, c in crossing_indices)) == 1
+
+        _, _, c = crossing_indices[0]
+        return c.handedness
+
+    def get_crossing_indices(self, id: int) -> list[tuple[int, int, SGCodeCrossing]]:
+        crossing_indices = [
+            (i, j, crossing)
+            for i, component in enumerate(self.components)
+            for j, crossing in enumerate(component)
+            if crossing.id == id
+        ]
+
+        assert len(crossing_indices) == 2
+        assert len(set(c.handedness for _, _, c in crossing_indices)) == 1
+
+        return crossing_indices
+
+    def splice_h(self, id: int, orthogonal: Sign = +1):
+        # under_idx and over_idx have the following shape
+        #
+        #   (component_index, crossing_index)
+        #
+        # where component_index is the index of the component in the components
+        # list and crossing index is the index in the single component list. So
+        # to access the original crossing we can do self.components[idx[0]][idx[1]]
+        (under_index, under_crossing), (over_index, over_crossing) = sorted_tuple(
+            (
+                ((i, j), crossing)
+                for i, component in enumerate(self.components)
+                for j, crossing in enumerate(component)
+                if crossing.id == id
+            ),
+            key=lambda c: c[1].over_under
+        )
 
         assert over_crossing.handedness == under_crossing.handedness
 
-        is_same_component = over_idx[0] == under_idx[0]
         handedness = over_crossing.handedness
+        over_index_component, _ = over_index
+        under_index_component, _ = under_index
 
-        # print(f"splice case: h, {is_same_component}, {handedness}")
+        if over_index_component == under_index_component:
+            component_index = over_index[0]
+            self_crossing_component = self.components[component_index]
 
-        if is_same_component:
-            self_crossing_component = self.components[over_idx[0]]
-            first_split, second_split = tuple(
-                sorted([over_idx[1], under_idx[1]])
+            _, over_crossing_index = over_index
+            _, under_crossing_index = under_index
+
+            first_split, second_split = sorted_tuple(
+                [over_crossing_index, under_crossing_index]
             )
 
             l1 = self_crossing_component[:first_split]
             l2 = self_crossing_component[first_split + 1:second_split]
             l3 = self_crossing_component[second_split + 1:]
 
-            if handedness == HANDED_LEFT:
-                return SignedGaussCode([
+            if handedness * orthogonal == HANDED_LEFT:
+                return SGCode([
                     *(component[:]
                       for i, component in enumerate(self.components)
-                      if i != over_idx[0]),
+                      if i != component_index),
                     [
                         *l1,
                         *l3,
@@ -370,28 +405,51 @@ class SignedGaussCode:
                     l2,
                 ])
             else:
-                return SignedGaussCode([
-                    *(component[:]
-                      for i, component in enumerate(self.components)
-                      if i != over_idx[0]),
+                over_crossing_ids = set(c.id for c in l2 if c.is_over())
+                under_crossing_ids = set(c.id for c in l2 if c.is_under())
+                non_self_crossing_ids = over_crossing_ids ^ under_crossing_ids
+
+                def update_signs(strand):
+                    return [
+                        c.flip_handedness() if c.id in non_self_crossing_ids else c
+                        for c in strand
+                    ]
+
+                return SGCode([
+                    *(
+                        update_signs(component)
+                        for i, component in enumerate(self.components)
+                        if i != component_index
+                    ),
                     [
-                        *l1,
-                        *l2[::-1],
-                        *l3,
+                        *update_signs(l1),
+                        *update_signs(reversed(l2)),
+                        *update_signs(l3),
                     ],
                 ])
+
+                # return SGCode([
+                #     *(component[:]
+                #       for i, component in enumerate(self.components)
+                #       if i != component_index),
+                #     [
+                #         *l1,
+                #         *l2[::-1],
+                #         *l3,
+                #     ],
+                # ])
         else:
-            l1 = self.components[over_idx[0]][:over_idx[1]]
-            l2 = self.components[over_idx[0]][over_idx[1] + 1:]
+            l1 = self.components[over_index[0]][:over_index[1]]
+            l2 = self.components[over_index[0]][over_index[1] + 1:]
 
-            m1 = self.components[under_idx[0]][:under_idx[1]]
-            m2 = self.components[under_idx[0]][under_idx[1] + 1:]
+            m1 = self.components[under_index[0]][:under_index[1]]
+            m2 = self.components[under_index[0]][under_index[1] + 1:]
 
-            if handedness == +1:
-                return SignedGaussCode([
+            if handedness * orthogonal == HANDED_LEFT:
+                return SGCode([
                     *(component[:]
                       for i, component in enumerate(self.components)
-                      if i != over_idx[0] and i != under_idx[0]),
+                      if i != over_index[0] and i != under_index[0]),
                     [
                         *l1,
                         *m2,
@@ -400,111 +458,139 @@ class SignedGaussCode:
                     ]
                 ])
             else:
-                return SignedGaussCode([
-                    *(component[:]
-                      for i, component in enumerate(self.components)
-                      if i != over_idx[0] and i != under_idx[0]),
-                    [
-                        *l1,
-                        *m1[::-1],
-                        *m2[::-1],
-                        *l2
+                over_crossing_ids = set(c.id for c in l2 if c.is_over())
+                under_crossing_ids = set(c.id for c in l2 if c.is_under())
+                non_self_crossing_ids = over_crossing_ids ^ under_crossing_ids
+
+                def update_signs(strand):
+                    return [
+                        c.flip_handedness() if c.id in non_self_crossing_ids else c
+                        for c in strand
                     ]
+
+                return SGCode([
+                    *(
+                        update_signs(component)
+                        for i, component in enumerate(self.components)
+                        if i != over_index_component and i != under_index_component
+                    ),
+                    [
+                        *update_signs(l1),
+                        *update_signs(reversed(m1)),
+                        *update_signs(reversed(m2)),
+                        *update_signs(l2)
+                    ],
                 ])
+
+                # return SGCode([
+                #     *(component[:]
+                #       for i, component in enumerate(self.components)
+                #       if i != over_index[0] and i != under_index[0]),
+                #     [
+                #         *l1,
+                #         *m1[::-1],
+                #         *m2[::-1],
+                #         *l2
+                #     ]
+                # ])
 
     def splice_v(self, id: int):
-        (under_idx, under_crossing), (over_idx, over_crossing) = tuple(
-            sorted(
-                (
-                    ((i, j), crossing)
-                    for i, component in enumerate(self.components)
-                    for j, crossing in enumerate(component)
-                    if crossing.id == id
-                ),
-                key=lambda c: c[1].over_under
-            )
-        )
+        return self.splice_h(id, orthogonal=-1)
 
-        #  print(over_idx, over_crossing)
-        #  print(under_idx, under_crossing)
+        # (under_idx, under_crossing), (over_idx, over_crossing) = tuple(
+        #     sorted(
+        #         (
+        #             ((i, j), crossing)
+        #             for i, component in enumerate(self.components)
+        #             for j, crossing in enumerate(component)
+        #             if crossing.id == id
+        #         ),
+        #         key=lambda c: c[1].over_under
+        #     )
+        # )
 
-        assert over_crossing.handedness == under_crossing.handedness
+        # #  print(over_idx, over_crossing)
+        # #  print(under_idx, under_crossing)
 
-        is_same_component = over_idx[0] == under_idx[0]
-        handedness = over_crossing.handedness
+        # assert over_crossing.handedness == under_crossing.handedness
 
-        #  print(f"splice case: v, {is_same_component}, {handedness}")
+        # is_same_component = over_idx[0] == under_idx[0]
+        # handedness = over_crossing.handedness
 
-        if is_same_component:
-            self_crossing_component = self.components[over_idx[0]]
-            first_split, second_split = tuple(
-                sorted([over_idx[1], under_idx[1]])
-            )
+        # #  print(f"splice case: v, {is_same_component}, {handedness}")
 
-            l1 = self_crossing_component[:first_split]
-            l2 = self_crossing_component[first_split + 1:second_split]
-            l3 = self_crossing_component[second_split + 1:]
+        # if is_same_component:
+        #     self_crossing_component = self.components[over_idx[0]]
+        #     first_split, second_split = tuple(
+        #         sorted([over_idx[1], under_idx[1]])
+        #     )
 
-            if handedness == HANDED_LEFT:
-                return SignedGaussCode([
-                    *(component[:]
-                      for i, component in enumerate(self.components)
-                      if i != over_idx[0]),
-                    [
-                        *l1,
-                        *l2[::-1],
-                        *l3,
-                    ],
-                ])
-            else:
-                return SignedGaussCode([
-                    *(component[:]
-                      for i, component in enumerate(self.components)
-                      if i != over_idx[0]),
-                    [
-                        *l1,
-                        *l3,
-                    ],
-                    l2,
-                ])
-        else:
-            l1 = self.components[over_idx[0]][:over_idx[1]]
-            l2 = self.components[over_idx[0]][over_idx[1] + 1:]
+        #     l1 = self_crossing_component[:first_split]
+        #     l2 = self_crossing_component[first_split + 1:second_split]
+        #     l3 = self_crossing_component[second_split + 1:]
 
-            m1 = self.components[under_idx[0]][:under_idx[1]]
-            m2 = self.components[under_idx[0]][under_idx[1] + 1:]
+        #     if handedness == HANDED_LEFT:
+        #         return SGCode([
+        #             *(component[:]
+        #               for i, component in enumerate(self.components)
+        #               if i != over_idx[0]),
+        #             [
+        #                 *l1,
+        #                 *l2[::-1],
+        #                 *l3,
+        #             ],
+        #         ])
+        #     else:
+        #         return SGCode([
+        #             *(component[:]
+        #               for i, component in enumerate(self.components)
+        #               if i != over_idx[0]),
+        #             [
+        #                 *l1,
+        #                 *l3,
+        #             ],
+        #             l2,
+        #         ])
+        # else:
+        #     l1 = self.components[over_idx[0]][:over_idx[1]]
+        #     l2 = self.components[over_idx[0]][over_idx[1] + 1:]
 
-            if handedness == +1:
-                return SignedGaussCode([
-                    *(component[:]
-                      for i, component in enumerate(self.components)
-                      if i != over_idx[0] and i != under_idx[0]),
-                    [
-                        *l1,
-                        *m1[::-1],
-                        *m2[::-1],
-                        *l2
-                    ]
-                ])
-            else:
-                return SignedGaussCode([
-                    *(component[:]
-                      for i, component in enumerate(self.components)
-                      if i != over_idx[0] and i != under_idx[0]),
-                    [
-                        *l1,
-                        *m2,
-                        *m1,
-                        *l2
-                    ]
-                ])
+        #     m1 = self.components[under_idx[0]][:under_idx[1]]
+        #     m2 = self.components[under_idx[0]][under_idx[1] + 1:]
+
+        #     if handedness == +1:
+        #         return SGCode([
+        #             *(component[:]
+        #               for i, component in enumerate(self.components)
+        #               if i != over_idx[0] and i != under_idx[0]),
+        #             [
+        #                 *l1,
+        #                 *m1[::-1],
+        #                 *m2[::-1],
+        #                 *l2
+        #             ]
+        #         ])
+        #     else:
+        #         return SGCode([
+        #             *(component[:]
+        #               for i, component in enumerate(self.components)
+        #               if i != over_idx[0] and i != under_idx[0]),
+        #             [
+        #                 *l1,
+        #                 *m2,
+        #                 *m1,
+        #                 *l2
+        #             ]
+        #         ])
 
     def switch_crossing(self, id: int):
-        return SignedGaussCode([
+        """
+        Switches the crossing with the given id.
+        """
+        return SGCode([
             [
-                crossing.opposite(
-                    invert_handedness=True
-                ) if crossing.id == id else crossing
+                crossing.switch()
+                if crossing.id == id else crossing
                 for crossing in component
             ]
             for component in self.components
@@ -513,16 +599,16 @@ class SignedGaussCode:
     @staticmethod
     def from_tuples(
         link: list[list[tuple[int, int]]]
-    ) -> SignedGaussCode:
+    ) -> SGCode:
         """
         Convert a list of tuples to a signed Gauss code.
         :param link: list of tuples
         :return: Signed Gauss code
         """
 
-        return SignedGaussCode([
+        return SGCode([
             [
-                SignedGaussCodeCrossing(
+                SGCodeCrossing(
                     abs(crossing),
                     CROSSING_OVER if crossing > 0 else CROSSING_UNDER,
                     HANDED_LEFT if handedness > 0 else HANDED_RIGHT
@@ -531,7 +617,7 @@ class SignedGaussCode:
         ])
 
     @staticmethod
-    def from_pd(pd_code: PDCode) -> SignedGaussCode:
+    def from_pd(pd_code: PDCode) -> SGCode:
         """
         Convert a PD code to a signed Gauss code.
         :param pd_code: PD code
@@ -547,7 +633,7 @@ class SignedGaussCode:
 
         # print(shadow)
 
-        components: list[list[SignedGaussCodeCrossing | None]] = [
+        components: list[list[SGCodeCrossing | None]] = [
             [
                 None for _ in range(len(component))
             ] for component in shadow
@@ -566,14 +652,14 @@ class SignedGaussCode:
 
             id = id + 1
 
-            over_crossing = SignedGaussCodeCrossing(
+            over_crossing = SGCodeCrossing(
                 id, CROSSING_OVER, crossing.sign()
             )
 
             components[over_cc_idx][over_crossing_idx] = over_crossing
             components[under_cc_idx][under_crossing_idx] = over_crossing.opposite()
 
-        return SignedGaussCode(components)  # type: ignore
+        return SGCode(components)  # type: ignore
 
 
 class PDCode:
@@ -682,7 +768,7 @@ class PDCode:
         source = source.replace("\n", "").replace(" ", "")
 
         expect_literal("PD[")
-        crossings: PDCodeCrossing = []
+        crossings: list[PDCodeCrossing] = []
 
         while source:
             expect_literal("X[")
@@ -711,7 +797,7 @@ class PDCode:
         Convert the PD code to a signed Gauss code.
         :return: Signed Gauss code
         """
-        return SignedGaussCode.from_pd(self)
+        return SGCode.from_pd(self)
 
 
 # {{1, -7, 5, -3}, {4, -1, 2, -5, 6, -4, 7, -2, 3, -6}}

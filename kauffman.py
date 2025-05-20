@@ -1,4 +1,4 @@
-from codes import SignedGaussCode
+from codes import SGCode
 from sympy import symbols
 
 from utils import log_input_output, depth_print
@@ -11,7 +11,7 @@ d = (a + 1 / a) / z - 1
 
 @log_input_output
 @cache
-def kauffman_polynomial(link: SignedGaussCode):
+def kauffman_polynomial(link: SGCode):
     depth_print("ℹ️  not cached...")
 
     if len(link.components) == 0:
@@ -52,11 +52,14 @@ def kauffman_polynomial(link: SignedGaussCode):
                 result = 0
 
                 for i in single_linked_component:
+                    component_result = 0
+
                     target_component, others, seq = link.split_component(i)
 
                     depth_print(f"ℹ️  sign: {(-1) ** len(seq)}")
 
-                    result += (
+                    component_result += (
+                        # (-1) ** (len(seq) + 1) * d
                         (-1) ** len(seq) * d
                         * kauffman_polynomial(target_component)
                         * kauffman_polynomial(others)
@@ -69,7 +72,8 @@ def kauffman_polynomial(link: SignedGaussCode):
 
                     depth_print(f"ℹ️  sign: {(-1) ** len(seq)}")
 
-                    result += (
+                    component_result += (
+                        # (-1) ** (len(seq) + 1) * d
                         (-1) ** len(seq) * d
                         * kauffman_polynomial(target_component)
                         * kauffman_polynomial(others)
@@ -77,7 +81,14 @@ def kauffman_polynomial(link: SignedGaussCode):
                         z * sum_switches(link_rev, seq)
                     )
 
-                    depth_print(f"ℹ️  result of component {i} ~> {result}")
+                    depth_print(
+                        f"ℹ️  component {i} ~> {component_result}")
+
+                    result += component_result
+
+                depth_print(
+                    f"ℹ️  final result = {result} / (2 * {len(single_linked_component)})"
+                )
 
                 return result / (2 * len(single_linked_component))
     else:
@@ -99,7 +110,7 @@ def kauffman_polynomial(link: SignedGaussCode):
                 )
             )
 
-            new_link = SignedGaussCode(
+            new_link = SGCode(
                 [
                     [
                         c
@@ -118,14 +129,14 @@ def kauffman_polynomial(link: SignedGaussCode):
         return result
 
 
-def move_A(link: SignedGaussCode, switching_seq: list[int], index: int) -> SignedGaussCode:
+def move_A(link: SGCode, switching_seq: list[int], index: int) -> SGCode:
     return (
         link.apply_switching_sequence(switching_seq[:index])
             .splice_h(switching_seq[index])
     )
 
 
-def move_B(link: SignedGaussCode, switching_seq: list[int], index: int) -> SignedGaussCode:
+def move_B(link: SGCode, switching_seq: list[int], index: int) -> SGCode:
     return (
         link.apply_switching_sequence(switching_seq[:index])
             .splice_v(switching_seq[index])
@@ -133,7 +144,7 @@ def move_B(link: SignedGaussCode, switching_seq: list[int], index: int) -> Signe
 
 
 @log_input_output
-def sum_switches(link: SignedGaussCode, switching_seq: list[int]):
+def sum_switches(link: SGCode, switching_seq: list[int]):
     result = 0
 
     # this is from 0 to the last switch in switching_seq
