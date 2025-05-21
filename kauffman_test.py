@@ -5,7 +5,7 @@ from sympy import symbols, poly, simplify, init_printing, factor
 
 a, z = symbols("a z")
 d = (a + 1 / a) / z - 1
-init_printing(use_unicode=True)
+init_printing()
 
 
 def test_kauffman_trivial():
@@ -57,6 +57,36 @@ def test_kauffman_infinity():
             [[(-1, -1), (1, -1)]]
         )
     ) == a ** -1
+
+
+def test_kauffman_infinity_3():
+    """
+    Test the Kauffman polynomial with a link with two curls
+    """
+
+    assert kauffman_polynomial(
+        SGCode.from_tuples(
+            [[(1, +1), (-1, +1), (2, +1), (-2, +1)]]
+        )
+    ) == a ** +2
+
+    assert kauffman_polynomial(
+        SGCode.from_tuples(
+            [[(1, +1), (-1, +1), (2, -1), (-2, -1)]]
+        )
+    ) == 1
+
+    assert kauffman_polynomial(
+        SGCode.from_tuples(
+            [[(1, -1), (-1, -1), (2, -1), (-2, -1)]]
+        )
+    ) == a ** -2
+
+    assert kauffman_polynomial(
+        SGCode.from_tuples(
+            [[(-1, -1), (2, -1), (-2, -1), (1, -1)]]
+        )
+    ) == a ** -2
 
 
 def test_kauffman_hopf():

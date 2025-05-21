@@ -1,5 +1,5 @@
 import functools
-
+from sympy import latex
 
 _global_depth = 0
 
@@ -51,10 +51,14 @@ def log_input_output(func):
             # try to simplify if sympy object
             new_result = result
             if hasattr(result, "simplify"):
-                new_result = result.simplify()
+                new_result = (
+                    str(result.expand())
+                    .replace("**", "^")
+                    .replace("*", " * ")
+                )
 
             print(
-                f"{call_prefix}└─▶ {new_result!r}"
+                f"{call_prefix}└─▶ {new_result}"
             )
             return result
         except Exception as e:

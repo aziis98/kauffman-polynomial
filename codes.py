@@ -458,8 +458,10 @@ class SGCode:
                     ]
                 ])
             else:
-                over_crossing_ids = set(c.id for c in l2 if c.is_over())
-                under_crossing_ids = set(c.id for c in l2 if c.is_under())
+                over_crossing_ids = set(c.id for c in m1 if c.is_over()) | set(
+                    c.id for c in m2 if c.is_over())
+                under_crossing_ids = set(c.id for c in m1 if c.is_under()) | set(
+                    c.id for c in m2 if c.is_under())
                 non_self_crossing_ids = over_crossing_ids ^ under_crossing_ids
 
                 def update_signs(strand):
