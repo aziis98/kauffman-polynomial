@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import graphs
 from graphs import Graph, collapse_loops
 
-from utils import sorted_tuple
+from utils import sorted_tuple, rotate_to_minimal
 
 
 Sign = typing.Literal[+1, -1]
@@ -79,6 +79,9 @@ class SGCodeCrossing:
     def __repr__(self):
         return f"({self.id * self.over_under}, {self.handedness})"
 
+    def __lt__(self, other: SGCodeCrossing):
+        return (-self.over_under, self.id) < (-other.over_under, other.id)
+
 
 @dataclass(frozen=True)
 class SGCode:
@@ -92,6 +95,15 @@ class SGCode:
             tuple(crossing.id for crossing in component)
             for component in self.components
         ))
+
+    def to_minimal(self):
+        """
+        Rotate the components to their minimal representation.
+        """
+        return SGCode([
+            rotate_to_minimal(component)
+            for component in self.components
+        ])
 
     def writhe(self):
         """

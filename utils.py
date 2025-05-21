@@ -1,7 +1,19 @@
 import functools
 from sympy import latex
 
+
 _global_depth = 0
+_global_debug = True
+
+
+def rotate_to_minimal(l):
+    """
+    Rotate a list to its minimal representation.
+    """
+    if len(l) == 0:
+        return l
+    min_index = l.index(min(l))
+    return l[min_index:] + l[:min_index]
 
 
 def sorted_tuple(t, key=None):
@@ -15,9 +27,11 @@ def depth_print(*args):
     """
     Just print but with depth and tree symbols.
     """
-    global _global_depth
+    global _global_depth, _global_debug
     # Ensure all args are strings for join, and use tree prefix
-    print(f"{_global_depth * '│  '}{' '.join(map(str, args))}")
+
+    if _global_debug:
+        print(f"{_global_depth * '│  '}{' '.join(map(str, args))}")
 
 
 def log_input_output(func):
@@ -27,7 +41,7 @@ def log_input_output(func):
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        global _global_depth
+        global _global_depth, _global_debug
 
         func_name = func.__name__
         args_repr = [repr(a) for a in args]
@@ -39,9 +53,10 @@ def log_input_output(func):
 
         # ascii error: ❌
 
-        print(
-            f"{call_prefix}● {func_name}({signature})"
-        )
+        if _global_debug:
+            print(
+                f"{call_prefix}● {func_name}({signature})"
+            )
 
         try:
             _global_depth += 1
@@ -57,18 +72,47 @@ def log_input_output(func):
                     .replace("*", " * ")
                 )
 
-            print(
-                f"{call_prefix}└─▶ {new_result}"
-            )
+            if _global_debug:
+                print(
+                    f"{call_prefix}└─▶ {new_result}"
+                )
             return result
         except Exception as e:
-            # _global_depth was incremented before func call.
-            # If exception occurs in func, _global_depth is 1 level too deep.
-            # We print the exception at the call_prefix level.
-            print(
-                f"{call_prefix}└─▶ ❌ {e!r}"
-            )
+            if _global_debug and _global_depth == 0:
+                print(
+                    f"❌ {e!r}"
+                )
+            elif _global_debug:
+                print(
+                    f"❌ {args!r} {kwargs!r}"
+                )
             _global_depth -= 1  # Ensure depth is restored before re-raising
             raise e
+
+    return wrapper
+
+
+_global_args_stack = []
+
+
+def get_arg_stack():
+    global _global_args_stack
+
+    return _global_args_stack
+
+
+def track_arg_stack(func):
+    """
+    Decorator to log the call depth of a function with tree symbols.
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        global _global_args_stack
+
+        _global_args_stack.append(args)
+        result = func(*args, **kwargs)
+        _global_args_stack.pop()
+
+        return result
 
     return wrapper

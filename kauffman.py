@@ -1,17 +1,27 @@
 from codes import SGCode
-from sympy import symbols
+from sympy import symbols, Poly
 
-from utils import log_input_output, depth_print
+from utils import log_input_output, depth_print, rotate_to_minimal
 
-from functools import cache
+from functools import cache, wraps
 
 a, z = symbols("a z")
 d = (a + 1 / a) / z - 1
 
 
+def prepare_link(func):
+    @wraps(func)
+    def wrapper(link: SGCode):
+        # return func(link.to_minimal())
+        return func(link)
+
+    return wrapper
+
+
 @log_input_output
 @cache
-def kauffman_polynomial(link: SGCode):
+@prepare_link
+def kauffman_polynomial(link: SGCode) -> Poly:
     depth_print("ℹ️  not cached...")
 
     if len(link.components) == 0:
@@ -38,15 +48,29 @@ def kauffman_polynomial(link: SGCode):
             if len(single_linked_component) == 1:
                 depth_print("ℹ️  single knotted component")
 
-                return ((
-                    (-1) ** (len(unknotting_seq) + 1)
-                    * kauffman_polynomial(link.apply_switching_sequence(unknotting_seq))
+                pm_sign = (-1) ** len(unknotting_seq)
+                depth_print(
+                    f"ℹ️  unknotting seq: {unknotting_seq!r}, sign: {pm_sign}"
+                )
+
+                result = (
+                    pm_sign
+                    * kauffman_polynomial(link.apply_switching_sequence(unknotting_seq)).simplify()
                     + z * sum_switches(link, unknotting_seq)
-                ) + (
-                    (-1) ** (len(unknotting_seq_rev) + 1)
-                    * kauffman_polynomial(link_rev.apply_switching_sequence(unknotting_seq_rev))
+                )
+
+                pm_sign = (-1) ** len(unknotting_seq_rev)
+                depth_print(
+                    f"ℹ️  unknotting seq rev: {unknotting_seq_rev!r}, sign: {pm_sign}"
+                )
+
+                result_rev = (
+                    pm_sign
+                    * kauffman_polynomial(link_rev.apply_switching_sequence(unknotting_seq_rev)).simplify()
                     + z * sum_switches(link_rev, unknotting_seq_rev)
-                )) / 2
+                )
+
+                return (result + result_rev) / 2
             else:
                 depth_print("ℹ️  multiple linked components")
                 result = 0
@@ -54,29 +78,29 @@ def kauffman_polynomial(link: SGCode):
                 for i in single_linked_component:
                     component_result = 0
 
-                    target_component, others, seq = link.split_component(i)
+                    link_part, others, seq = link.split_component(i)
 
-                    depth_print(f"ℹ️  sign: {(-1) ** len(seq)}")
+                    pm_sign = (-1) ** len(seq)
+                    depth_print(f"ℹ️  sign: {pm_sign}")
 
                     component_result += (
-                        # (-1) ** (len(seq) + 1) * d
-                        (-1) ** len(seq) * d
-                        * kauffman_polynomial(target_component)
-                        * kauffman_polynomial(others)
+                        pm_sign * d
+                        * kauffman_polynomial(link_part).simplify()
+                        * kauffman_polynomial(others).simplify()
                     ) + (
                         z * sum_switches(link, seq)
                     )
 
                     link_rev = link.reverse(ids=[i])
-                    target_component, others, seq = link_rev.split_component(i)
+                    link_part, others, seq = link_rev.split_component(i)
 
-                    depth_print(f"ℹ️  sign: {(-1) ** len(seq)}")
+                    pm_sign = (-1) ** len(seq)
+                    depth_print(f"ℹ️  sign: {pm_sign}")
 
                     component_result += (
-                        # (-1) ** (len(seq) + 1) * d
-                        (-1) ** len(seq) * d
-                        * kauffman_polynomial(target_component)
-                        * kauffman_polynomial(others)
+                        pm_sign * d
+                        * kauffman_polynomial(link_part).simplify()
+                        * kauffman_polynomial(others).simplify()
                     ) + (
                         z * sum_switches(link_rev, seq)
                     )
@@ -124,7 +148,7 @@ def kauffman_polynomial(link: SGCode):
             if k > 0:
                 result *= d
 
-            result *= kauffman_polynomial(new_link)
+            result *= kauffman_polynomial(new_link).simplify()
 
         return result
 
@@ -144,7 +168,7 @@ def move_B(link: SGCode, switching_seq: list[int], index: int) -> SGCode:
 
 
 @log_input_output
-def sum_switches(link: SGCode, switching_seq: list[int]):
+def sum_switches(link: SGCode, switching_seq: list[int]) -> Poly:
     result = 0
 
     # this is from 0 to the last switch in switching_seq
@@ -152,8 +176,8 @@ def sum_switches(link: SGCode, switching_seq: list[int]):
         switched_link = link.apply_switching_sequence(switching_seq[:i + 1])
 
         result += (
-            ((-1) ** i) * (kauffman_polynomial(switched_link.splice_h(switching_seq[i]))
-                           + kauffman_polynomial(switched_link.splice_v(switching_seq[i])))
+            ((-1) ** i) * (kauffman_polynomial(switched_link.splice_h(switching_seq[i])).simplify()
+                           + kauffman_polynomial(switched_link.splice_v(switching_seq[i])).simplify())
         )
 
     return result
