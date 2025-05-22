@@ -219,17 +219,108 @@ def test_kauffman_trefoil():
 
 #     assert kL_K5_2.expand() == kL_K5_2_expected.expand()
 
+# def test_kauffman_K6_1():
+#     link_pd = PDCode.from_tuples([
+#         (1, 7, 2, 6), (3, 10, 4, 11), (5, 3, 6, 2),
+#         (7, 1, 8, 12), (9, 4, 10, 5), (11, 9, 12, 8)
+#     ])
+
+#     print(link_pd.to_signed_gauss_code())
+
+#     link_sgc = link_pd.to_signed_gauss_code()
+
+#     kL_K6_1 = kauffman_polynomial(link_sgc)
+#     kL_K6_1_expected = (
+#         (a + a**-1) * z**5
+#         + (a**2 + 2 + a**-2) * z**4
+#         + (-3*a - 2*a**-1 + a**-3) * z**3
+#         + (-3*a**2 - 4 + a**-4) * z**2
+#         + (2*a + 2*a**-1) * z**1
+#         + (a**2 + 1 - a**-4) * z**0
+#     )
+
+#     assert kL_K6_1.expand() == kL_K6_1_expected.expand()
+
+
+def test_kauffman_K4_1():
+    # figure-8
+    # link_pd = PDCode.from_tuples([
+    #     (4, 2, 5, 1), (8, 6, 1, 5), (6, 3, 7, 4), (2, 7, 3, 8)
+    # ])
+
+    # print(link_pd.to_signed_gauss_code())
+
+    link_sgc = SGCode.from_tuples([
+        [(1, 1), (-4, -1), (3, -1), (-1, 1), (2, 1), (-3, -1), (4, -1), (-2, 1)]
+    ])
+
+    L_figure8 = kauffman_polynomial(link_sgc)
+    L_figure8_expected = (
+        (a + a**(-1))*z**3 + (a**2 + 2 + a**(-2))*z**2 +
+        (-a - a**(-1))*z**1 + (-a**2 - 1 - a**(-2))*z**0
+    )
+
+    assert L_figure8.expand() == L_figure8_expected.expand()
+
+
+def test_kauffman_K5_1():
+    link_pd = PDCode.from_tuples([
+        (2, 8, 3, 7), (4, 10, 5, 9), (6, 2, 7, 1), (8, 4, 9, 3), (10, 6, 1, 5)
+    ])
+
+    link_sgc = link_pd.to_signed_gauss_code()
+    print(link_sgc)
+    print(f"write: {link_sgc.writhe()}")
+
+    kL_K5_1 = kauffman_polynomial(link_sgc)
+    kL_K5_1_expected = (
+        z**4 * (a + a**(-1)) +
+        z**3 * (1 + a**(-2)) +
+        z**2 * (-4*a - 3*a**(-1) + a**(-3)) +
+        z**1 * (-2 - a**(-2) + a**(-4)) +
+        z**0 * (3*a + 2*a**(-1))
+    )
+
+    assert kL_K5_1.expand() == kL_K5_1_expected.expand()
+
+
+def test_kauffman_K5_2():
+    link_pd = PDCode.from_tuples([
+        (4, 7, 5, 8), (6, 1, 7, 2), (10, 5, 1, 6), (8, 3, 9, 4), (2, 9, 3, 10)
+    ])
+
+    link_sgc = link_pd.to_signed_gauss_code()
+    print(link_sgc)
+    print(f"write: {link_sgc.writhe()}")
+
+    kL_K5_2 = kauffman_polynomial(link_sgc).simplify().expand()
+    kL_K5_2_expected = (
+        z**4 * (a + a**(-1)) +
+        z**3 * (a**2 + 2 + a**(-2)) +
+        z**2 * (-2*a - a**(-1) + a**(-3)) +
+        z**1 * (-2*a**2 - 2) +
+        z**0 * (a + a**(-1) - a**(-3))
+    ).simplify().expand()
+
+    print(kL_K5_2)
+    print(kL_K5_2_expected)
+
+    assert kL_K5_2 == kL_K5_2_expected
+
+
 def test_kauffman_K6_1():
     link_pd = PDCode.from_tuples([
-        (1, 7, 2, 6), (3, 10, 4, 11), (5, 3, 6, 2),
-        (7, 1, 8, 12), (9, 4, 10, 5), (11, 9, 12, 8)
+        (8, 2, 9, 1), (12, 3, 1, 4), (10, 5, 11, 6),
+        (2, 8, 3, 7), (6, 9, 7, 10), (4, 11, 5, 12)
     ])
 
     print(link_pd.to_signed_gauss_code())
 
     link_sgc = link_pd.to_signed_gauss_code()
+    print(link_sgc)
+    print(f"write: {link_sgc.writhe()}")
 
-    kL_K6_1 = kauffman_polynomial(link_sgc)
+    kL_K6_1 = kauffman_polynomial(link_sgc).simplify().expand()
     kL_K6_1_expected = (
         (a + a**-1) * z**5
         + (a**2 + 2 + a**-2) * z**4
@@ -237,6 +328,65 @@ def test_kauffman_K6_1():
         + (-3*a**2 - 4 + a**-4) * z**2
         + (2*a + 2*a**-1) * z**1
         + (a**2 + 1 - a**-4) * z**0
-    )
+    ).simplify().expand()
 
-    assert kL_K6_1.expand() == kL_K6_1_expected.expand()
+    print(kL_K6_1)
+    print(kL_K6_1_expected)
+
+    assert kL_K6_1 == kL_K6_1_expected
+
+
+def test_kauffman_K6_2():
+    link_pd = PDCode.from_tuples([
+        (11, 3, 12, 2), (9, 5, 10, 4), (1, 6, 2, 7),
+        (3, 9, 4, 8), (5, 11, 6, 10), (7, 12, 8, 1)
+    ])
+
+    print(link_pd.to_signed_gauss_code())
+
+    link_sgc = link_pd.to_signed_gauss_code()
+    print(link_sgc)
+    print(f"write: {link_sgc.writhe()}")
+
+    kL_K6_2 = kauffman_polynomial(link_sgc).simplify().expand()
+    kL_K6_2_expected = (
+        (a + a**-1)*z**5
+        + (a**2 + 3 + 2*a**-2)*z**4
+        + (-2*a + 2*a**-3)*z**3
+        + (-3*a ** 2 - 6 - 2*a**-2 + a**-4)*z**2
+        + (-a**-1 - a**-3)*z**1
+        + (2*a**2 + 2 + a**-2)*z**0
+    ).simplify().expand()
+
+    print(kL_K6_2)
+    print(kL_K6_2_expected)
+
+    assert kL_K6_2 == kL_K6_2_expected
+
+
+def test_kauffman_K6_3():
+    link_pd = PDCode.from_tuples([
+        (8, 1, 9, 2), (6, 4, 7, 3), (12, 6, 1, 5),
+        (10, 7, 11, 8), (2, 9, 3, 10), (4, 12, 5, 11)
+    ])
+
+    print(link_pd.to_signed_gauss_code())
+
+    link_sgc = link_pd.to_signed_gauss_code()
+    print(link_sgc)
+    print(f"write: {link_sgc.writhe()}")
+
+    kL_K6_3 = kauffman_polynomial(link_sgc).simplify().expand()
+    kL_K6_3_expected = (
+        (a + a**-1)*z**5
+        + (2*a**2 + 4 + 2*a**-2)*z**4
+        + (a**3 + a + a**-1 + a**-3)*z**3
+        + (-3 * a**2 - 6 - 3*a**-2)*z**2
+        + (-a**3 - 2*a - 2*a**-1 - a**-3)*z**1
+        + (a**2 + 3 + a**-2)*z**0
+    ).simplify().expand()
+
+    print(kL_K6_3)
+    print(kL_K6_3_expected)
+
+    assert kL_K6_3 == kL_K6_3_expected
