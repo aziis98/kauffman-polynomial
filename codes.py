@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import graphs
 from graphs import Graph, collapse_loops
 
-from utils import sorted_tuple, rotate_to_minimal
+from utils import sorted_tuple, rotate_to_minimal, sign_str
 
 
 Sign = typing.Literal[+1, -1]
@@ -77,10 +77,12 @@ class SGCodeCrossing:
         return SGCodeCrossing(self.id, self.over_under, -self.handedness)
 
     def __repr__(self):
-        return f"({self.id * self.over_under}, {self.handedness})"
+        return f"{sign_str(self.over_under)}{self.id}{sign_str(self.handedness, mode='sup')}"
 
     def __lt__(self, other: SGCodeCrossing):
-        return (-self.over_under, self.id) < (-other.over_under, other.id)
+        # return self.id < other.id
+        # return (-self.over_under, self.id) < (-other.over_under, other.id)
+        return (self.id, -self.handedness) < (other.id, -other.handedness)
 
 
 @dataclass(frozen=True)
@@ -95,6 +97,30 @@ class SGCode:
             tuple(crossing.id for crossing in component)
             for component in self.components
         ))
+
+    def relabel(self):
+        """
+        Relabel the crossings to use ids in the range [1, n].
+        """
+
+        crossing_ids = {
+            crossing.id
+            for component in self.components
+            for crossing in component
+        }
+
+        id_mapping = {old_id: new_id for new_id,
+                      old_id in enumerate(crossing_ids, start=1)}
+
+        return SGCode([
+            [
+                SGCodeCrossing(
+                    id_mapping[crossing.id],
+                    crossing.over_under,
+                    crossing.handedness
+                ) for crossing in component
+            ] for component in self.components
+        ])
 
     def to_minimal(self):
         """

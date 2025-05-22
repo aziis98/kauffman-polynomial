@@ -1,5 +1,5 @@
 from codes import SGCode, PDCode
-from kauffman import kauffman_polynomial
+from kauffman_closed import kauffman_polynomial
 from sympy import symbols, poly, simplify, init_printing, factor
 
 

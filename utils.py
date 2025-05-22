@@ -2,6 +2,8 @@ import functools
 from sympy import latex
 
 
+from typing import Literal
+
 _global_depth = 0
 _global_debug = True
 
@@ -16,11 +18,34 @@ def rotate_to_minimal(l):
     return l[min_index:] + l[:min_index]
 
 
+def sign_str(n, mode: Literal[None, 'sup', 'sub'] = None):
+    SIGN_MAP = {
+        None: {1: "+", -1: "-", 0: "0"},
+        'sup': {1: "⁺", -1: "⁻", 0: "0"},
+        'sub': {1: "₊", -1: "₋", 0: "₀"}
+    }
+
+    if n > 0:
+        return SIGN_MAP[mode][1]
+    elif n < 0:
+        return SIGN_MAP[mode][-1]
+    else:
+        return SIGN_MAP[mode][0]
+
+
 def sorted_tuple(t, key=None):
     """
     Sort a tuple and returns it as a tuple for easy destructuring.
     """
     return tuple(sorted(t, key=key))
+
+
+def get_depth():
+    """
+    Get the current depth of the tree.
+    """
+    global _global_depth
+    return _global_depth
 
 
 def depth_print(*args):
