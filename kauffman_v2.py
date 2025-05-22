@@ -47,7 +47,7 @@ def kauffman_polynomial(link: SGCode) -> Poly:
     if len(link.components) == 0:
         return 0
 
-    disconnected_components: list[list[int]] = link.unlinked_components()
+    disconnected_components: list[list[int]] = link.overlies_decomposition()
 
     assert len(disconnected_components) > 0
 

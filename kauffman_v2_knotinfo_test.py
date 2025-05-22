@@ -20,7 +20,11 @@ def test_polynomial(k_info, pd, sg) -> bool:
 
     stdout_buff = io.StringIO()
     with redirect_stdout(stdout_buff):
-        p_actual = f_polynomial(sg).expand()
+        try:
+            p_actual = f_polynomial(sg).expand()
+        except Exception as e:
+            print(f"Error: {e}")
+            p_actual = None
 
     p_expected = parse_expr(
         k_info['kauffman_polynomial'].replace('^', '**')
@@ -57,18 +61,18 @@ def test_knotinfo_polynomial(k_info, pd_key, paren_spec) -> bool:
     )
 
 
-knots_list_1 = database_knotinfo.link_list()[2:25]
-for k_data in knots_list_1:
-    result = test_knotinfo_polynomial(k_data, 'pd_notation', '[[]]')
-    if not result:
-        break
-
-
-# knots_list_2 = database_knotinfo.link_list(proper_links=True)[2:50]
-# for k_data in knots_list_2:
-#     result = test_knotinfo_polynomial(k_data, 'pd_notation_vector', '{{}}')
+# knots_list_1 = database_knotinfo.link_list()[2:25]
+# for k_data in knots_list_1:
+#     result = test_knotinfo_polynomial(k_data, 'pd_notation', '[[]]')
 #     if not result:
 #         break
+
+
+knots_list_2 = database_knotinfo.link_list(proper_links=True)[2:50]
+for k_data in knots_list_2:
+    result = test_knotinfo_polynomial(k_data, 'pd_notation_vector', '{{}}')
+    if not result:
+        break
 
 
 # test_polynomial(

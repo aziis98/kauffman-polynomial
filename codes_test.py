@@ -85,56 +85,56 @@ def test_connected_components():
     assert link_sgc.connected_components() == [[0, 1], [2]]
 
 
-def test_unlinked_components_1():
-    link_sgc = SGCode.from_tuples([
-        [(1, -1), (-4, -1), (2, -1), (-1, -1), (-6, -1), (3, -1),
-         (4, -1), (-2, -1)],
-        [(-3, -1), (5, -1), (-5, -1), (6, -1)],
-    ])
+# def test_unlinked_components_1():
+#     link_sgc = SGCode.from_tuples([
+#         [(1, -1), (-4, -1), (2, -1), (-1, -1), (-6, -1), (3, -1),
+#          (4, -1), (-2, -1)],
+#         [(-3, -1), (5, -1), (-5, -1), (6, -1)],
+#     ])
 
-    assert link_sgc.unlinked_components() == {
-        (0, 1,): set(),
-    }
-
-
-def test_unlinked_components_2():
-    link_sgc = SGCode.from_tuples([
-        [(1, -1), (-4, -1), (2, -1), (-1, -1), (-6, -1), (3, -1),
-         (4, -1), (-2, -1)],
-        [(-3, -1), (5, -1), (-5, -1), (6, -1)],
-        [(7, -1), (-7, -1)]
-    ])
-
-    assert link_sgc.unlinked_components() == {
-        (0, 1,): set(),
-        (2,): set(),
-    }
+#     assert link_sgc.unlinked_components() == {
+#         (0, 1,): set(),
+#     }
 
 
-def test_unlinked_components_3():
-    # link from ./assets/complex-overlies-1.png
-    link_sgc = SGCode.from_tuples([
-        [(5, -1), (13, -1), (7, 1), (14, 1)],
-        [(10, -1), (-1, -1), (-17, 1), (-5, -1), (-14, 1), (12, 1)],
-        [(9, -1), (-13, -1), (-7, 1), (-8, -1)],
-        [(-9, -1), (-10, -1), (-12, 1), (8, -1)],
-        [(6, -1), (11, 1), (1, -1), (17, 1)],
-        [(18, 1), (-15, -1), (-3, 1), (16, -1)],
-        [(3, 1), (-4, 1), (-2, -1), (15, -1)],
-        [(-6, -1), (-11, 1), (4, 1), (2, -1), (-18, 1), (-16, -1)]
-    ])
+# def test_unlinked_components_2():
+#     link_sgc = SGCode.from_tuples([
+#         [(1, -1), (-4, -1), (2, -1), (-1, -1), (-6, -1), (3, -1),
+#          (4, -1), (-2, -1)],
+#         [(-3, -1), (5, -1), (-5, -1), (6, -1)],
+#         [(7, -1), (-7, -1)]
+#     ])
 
-    components = link_sgc.unlinked_components()
+#     assert link_sgc.unlinked_components() == {
+#         (0, 1,): set(),
+#         (2,): set(),
+#     }
 
-    print(components)
 
-    assert components == {
-        (0,): {(2, 3), (1,)},
-        (1,): {(2, 3)},
-        (2, 3): set(),
-        (4,): {(1,), (5, 7, 6)},
-        (5, 7, 6): set()
-    }
+# def test_unlinked_components_3():
+#     # link from ./assets/complex-overlies-1.png
+#     link_sgc = SGCode.from_tuples([
+#         [(5, -1), (13, -1), (7, 1), (14, 1)],
+#         [(10, -1), (-1, -1), (-17, 1), (-5, -1), (-14, 1), (12, 1)],
+#         [(9, -1), (-13, -1), (-7, 1), (-8, -1)],
+#         [(-9, -1), (-10, -1), (-12, 1), (8, -1)],
+#         [(6, -1), (11, 1), (1, -1), (17, 1)],
+#         [(18, 1), (-15, -1), (-3, 1), (16, -1)],
+#         [(3, 1), (-4, 1), (-2, -1), (15, -1)],
+#         [(-6, -1), (-11, 1), (4, 1), (2, -1), (-18, 1), (-16, -1)]
+#     ])
+
+#     components = link_sgc.unlinked_components()
+
+#     print(components)
+
+#     assert components == {
+#         (0,): {(2, 3), (1,)},
+#         (1,): {(2, 3)},
+#         (2, 3): set(),
+#         (4,): {(1,), (5, 7, 6)},
+#         (5, 7, 6): set()
+#     }
 
 
 def test_split_components_1():
@@ -150,23 +150,45 @@ def test_split_components_1():
         [(-6, -1), (-11, 1), (4, 1), (2, -1), (-18, 1), (-16, -1)]
     ])
 
-    components = link_sgc.unlinked_components()
-    assert components == {
-        (0,): {(2, 3), (1,)},
-        (1,): {(2, 3)},
-        (2, 3): set(),
-        (4,): {(1,), (5, 7, 6)},
-        (5, 7, 6): set()
-    }
+    partition = link_sgc.overlies_decomposition()
+    # assert components == {
+    #     (0,): {(2, 3), (1,)},
+    #     (1,): {(2, 3)},
+    #     (2, 3): set(),
+    #     (4,): {(1,), (5, 7, 6)},
+    #     (5, 7, 6): set()
+    # }
 
-    top_comp, others, seq = link_sgc.split_component(4)
+    assert partition == [[0], [4], [1, 2, 3, 5, 6, 7]]
 
-    assert len(top_comp.unlinked_components()) == 1
-    assert len(others.unlinked_components()) == 4
-    assert seq == []
+    # top_comp, others, seq = link_sgc.split_component(4)
 
-    top_comp, others, seq = link_sgc.split_component(5)
+    # assert len(top_comp.unlinked_components()) == 1
+    # assert len(others.unlinked_components()) == 4
+    # assert seq == []
 
-    assert len(top_comp.unlinked_components()) == 1
-    assert len(others.unlinked_components()) == 6
-    assert seq == [15, 3]
+    # top_comp, others, seq = link_sgc.split_component(5)
+
+    # assert len(top_comp.unlinked_components()) == 1
+    # assert len(others.unlinked_components()) == 6
+    # assert seq == [15, 3]
+
+
+def test_overlies_decomposition_1():
+    sg = SGCode.from_tuples([
+        [(+1, -1), (+6, +1), (+5, +1), (-3, +1)],
+        [(+4, -1), (-1, -1), (+2, +1), (-5, +1)],
+        [(-6, +1), (-4, -1), (+3, +1), (-2, +1)]
+    ])
+
+    component_ids = sg.overlies_decomposition()
+
+    assert component_ids == [[0, 1, 2]]
+
+
+def test_overlies_decomposition_2():
+    sg = SGCode.from_tuples([[(+1, +1), (-2, +1)], [(+2, +1), (-1, +1)]])
+
+    component_ids = sg.overlies_decomposition()
+
+    assert component_ids == [[0, 1]]

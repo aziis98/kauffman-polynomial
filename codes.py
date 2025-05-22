@@ -5,7 +5,7 @@ from typing import Literal, Iterable
 from dataclasses import dataclass
 
 import graphs
-from graphs import Graph, collapse_loops, find_disjoint_loops
+from graphs import Graph, collapse_loops, find_roots
 
 from utils import sorted_tuple, rotate_to_minimal, sign_str, depth_print
 
@@ -231,9 +231,7 @@ class SGCode:
             get_neighbors=lambda i: component_adj[i]
         )
 
-    def unlinked_components(self) -> list[list[int]]:
-        # print(self)
-
+    def overlies_decomposition(self) -> list[list[int]]:
         # graph where "i -> j" iff "i overlies j"
         graph_of_overlies: Graph[int] = {}
 
@@ -257,15 +255,55 @@ class SGCode:
 
         depth_print(f"ℹ️  {graph_of_overlies!r}")
 
-        components = find_disjoint_loops(graph_of_overlies)
-        present_ids = set(id for component in components for id in component)
+        roots = find_roots(graph_of_overlies)
 
-        # add remaining singletons
-        for i in range(len(self.components)):
-            if i not in present_ids:
-                components.append([i])
+        result = [[i] for i in roots]
 
-        return components
+        if len(roots) < len(self.components):
+            result += [
+                [
+                    i for i in range(len(self.components))
+                    if i not in roots
+                ]
+            ]
+
+        return result
+
+    # def unlinked_components(self) -> list[list[int]]:
+    #     # print(self)
+
+    #     # graph where "i -> j" iff "i overlies j"
+    #     graph_of_overlies: Graph[int] = {}
+
+    #     crossing_indices = {
+    #         crossing: (i, j)
+    #         for i, component in enumerate(self.components)
+    #         for j, crossing in enumerate(component)
+    #     }
+
+    #     for i1, component in enumerate(self.components):
+    #         graph_of_overlies[i1] = set()
+    #         for j1, crossing in enumerate(component):
+    #             over_crossing = crossing.opposite()
+
+    #             i2, _ = crossing_indices[over_crossing]
+    #             if i1 == i2:
+    #                 continue
+
+    #             if crossing.is_over():
+    #                 graph_of_overlies[i1].add(i2)
+
+    #     depth_print(f"ℹ️  {graph_of_overlies!r}")
+
+    #     components = find_disjoint_loops(graph_of_overlies)
+    #     present_ids = set(id for component in components for id in component)
+
+    #     # add remaining singletons
+    #     for i in range(len(self.components)):
+    #         if i not in present_ids:
+    #             components.append([i])
+
+    #     return components
 
     # def to_std_unknot(self) -> SGCode:
     #     visited_crossings: set[int] = set()

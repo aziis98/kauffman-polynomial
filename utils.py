@@ -109,8 +109,6 @@ def log_input_output(func):
         # Prefix for the current function call level
         call_prefix = _global_depth * '│  '
 
-        # ascii error: ❌
-
         if _global_debug:
             print(
                 f"{call_prefix}● {func_name}({signature})"
@@ -137,13 +135,7 @@ def log_input_output(func):
             return result
         except Exception as e:
             if _global_debug and _global_depth == 0:
-                print(
-                    f"❌ {e!r}"
-                )
-            elif _global_debug:
-                print(
-                    f"❌ {args!r} {kwargs!r}"
-                )
+                print(f"❌ {e!r}")
             _global_depth -= 1  # Ensure depth is restored before re-raising
             raise e
 
