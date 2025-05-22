@@ -28,7 +28,7 @@ def polynomial_wrapper(func):
         # cache, relabel: 814
         # cache, relabel, to_minimal: 999 (???)
         # result = func(link.to_minimal())
-        result = func(link).expand()
+        result = func(link.relabel()).expand()
 
         if get_depth() == 0:
             print(f"Call Count: {_fn_calls_count}")

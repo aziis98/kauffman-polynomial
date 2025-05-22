@@ -1,4 +1,4 @@
-from codes import SGCode, PDCode
+from codes import PDCode
 from kauffman_v2 import f_polynomial
 from sympy import parse_expr, symbols, init_printing
 from utils import parse_nested_list
@@ -6,25 +6,31 @@ from contextlib import redirect_stdout
 import database_knotinfo
 import io
 
+import time
+
 
 a, z = symbols("a z")
 d = (a + 1 / a) / z - 1
 init_printing()
 
 
-def test_polynomial(k_info, pd, sg) -> bool:
+def process_polynomial(k_info, pd, sg) -> bool:
     """
     Tests the Kauffman polynomial for a given knot.
     """
     print(f"{"-" * 30}[{k_info['name'].center(20)}]{"-" * 30}")
 
     stdout_buff = io.StringIO()
+    start = time.time()
     with redirect_stdout(stdout_buff):
         try:
             p_actual = f_polynomial(sg).expand()
+
         except Exception as e:
             print(f"Error: {e}")
             p_actual = None
+    end = time.time()
+    bench_time = end - start
 
     p_expected = parse_expr(
         k_info['kauffman_polynomial'].replace('^', '**')
@@ -32,7 +38,7 @@ def test_polynomial(k_info, pd, sg) -> bool:
 
     if p_actual == p_expected:
         print("SG:", sg)
-        print("=> Correct")
+        print(f"=> Correct {bench_time:.2f}s")
         return True
     else:
         print(stdout_buff.getvalue())
@@ -47,30 +53,32 @@ def test_polynomial(k_info, pd, sg) -> bool:
         return False
 
 
-def test_knotinfo_polynomial(k_info, pd_key, paren_spec) -> bool:
+def process_knotinfo_polynomial(k_info, pd_key, paren_spec) -> bool:
     """
     Tests the Kauffman polynomial for a given knot.
     """
     pd_notation_str = k_info[pd_key]
     pd = parse_nested_list(pd_notation_str, paren_spec=paren_spec)
 
-    return test_polynomial(
+    return process_polynomial(
         k_info,
         pd_notation_str,
         PDCode.from_tuples(pd).to_signed_gauss_code(),  # type: ignore
     )
 
 
-# knots_list_1 = database_knotinfo.link_list()[2:25]
-# for k_data in knots_list_1:
-#     result = test_knotinfo_polynomial(k_data, 'pd_notation', '[[]]')
+# knots_list_1 = database_knotinfo.link_list()[2:200]
+# for i, k_data in enumerate(knots_list_1):
+#     print(f"Test {i + 1}/{len(knots_list_1)}")
+#     result = process_knotinfo_polynomial(k_data, 'pd_notation', '[[]]')
 #     if not result:
 #         break
 
 
-knots_list_2 = database_knotinfo.link_list(proper_links=True)[2:50]
-for k_data in knots_list_2:
-    result = test_knotinfo_polynomial(k_data, 'pd_notation_vector', '{{}}')
+list_of_links = database_knotinfo.link_list(proper_links=True)[2:]
+for i, k_data in enumerate(list_of_links):
+    print(f"Test {i + 1}/{len(list_of_links)}")
+    result = process_knotinfo_polynomial(k_data, 'pd_notation_vector', '{{}}')
     if not result:
         break
 
