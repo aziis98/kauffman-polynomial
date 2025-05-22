@@ -8,7 +8,7 @@ import re
 from typing import Literal
 
 _global_depth = 0
-_global_debug = True
+global_debug = True
 
 
 def parse_nested_list(
@@ -85,10 +85,10 @@ def depth_print(*args):
     """
     Just print but with depth and tree symbols.
     """
-    global _global_depth, _global_debug
+    global _global_depth, global_debug
     # Ensure all args are strings for join, and use tree prefix
 
-    if _global_debug:
+    if global_debug:
         print(f"{_global_depth * '│  '}{' '.join(map(str, args))}")
 
 
@@ -99,7 +99,7 @@ def log_input_output(func):
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        global _global_depth, _global_debug
+        global _global_depth, global_debug
 
         func_name = func.__name__
         args_repr = [repr(a) for a in args]
@@ -109,7 +109,7 @@ def log_input_output(func):
         # Prefix for the current function call level
         call_prefix = _global_depth * '│  '
 
-        if _global_debug:
+        if global_debug:
             print(
                 f"{call_prefix}● {func_name}({signature})"
             )
@@ -128,13 +128,13 @@ def log_input_output(func):
                     .replace("*", " * ")
                 )
 
-            if _global_debug:
+            if global_debug:
                 print(
                     f"{call_prefix}└─▶ {new_result}"
                 )
             return result
         except Exception as e:
-            if _global_debug and _global_depth == 0:
+            if global_debug and _global_depth == 0:
                 print(f"❌ {e!r}")
             _global_depth -= 1  # Ensure depth is restored before re-raising
             raise e

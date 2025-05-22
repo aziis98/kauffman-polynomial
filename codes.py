@@ -34,6 +34,12 @@ class PDCodeCrossing:
     def __iter__(self):
         return iter((self.i, self.j, self.k, self.l))
 
+    def __str__(self):
+        return f"[{self.i}, {self.j}, {self.k}, {self.l}]"
+
+    def __repr__(self):
+        return f"PDCodeCrossing({self.i}, {self.j}, {self.k}, {self.l})"
+
     def sign(self):
         if self.j - self.l == 1 or self.l - self.j > 1:
             return +1
@@ -253,8 +259,6 @@ class SGCode:
                 if crossing.is_over():
                     graph_of_overlies[i1].add(i2)
 
-        depth_print(f"ℹ️  {graph_of_overlies!r}")
-
         roots = find_roots(graph_of_overlies)
 
         result = [[i] for i in roots]
@@ -267,6 +271,12 @@ class SGCode:
                 ]
             ]
 
+        # check result is a partition of 0...len(self.components)
+        assert sum(len(component)
+                   for component in result) == len(self.components)
+        # assert len(result) < 3
+
+        depth_print(f"ℹ️  {result}")
         return result
 
     # def unlinked_components(self) -> list[list[int]]:
@@ -679,6 +689,12 @@ class SGCode:
 class PDCode:
     crossings: list[PDCodeCrossing]
 
+    def __str__(self):
+        return f"[{", ".join(str(c) for c in self.crossings)}]"
+
+    def __repr__(self):
+        return f"PDCode({self.crossings})"
+
     def __init__(self, crossings: list[PDCodeCrossing]):
         self.crossings = crossings
 
@@ -734,7 +750,7 @@ class PDCode:
         return components
 
     @staticmethod
-    def from_tuples(link: list[list[int] | tuple[int, int, int, int]]):
+    def from_tuples(link: list[list[int]] | list[tuple[int, int, int, int]]):
         """
         e.g. link = [(3, 6, 4, 1), (5, 2, 6, 3), (4, 2, 5, 1)]
         """

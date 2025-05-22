@@ -5,7 +5,6 @@ from utils import parse_nested_list
 from contextlib import redirect_stdout
 import database_knotinfo
 import io
-
 import time
 
 
@@ -36,20 +35,18 @@ def process_polynomial(k_info, pd, sg) -> bool:
         k_info['kauffman_polynomial'].replace('^', '**')
     ).expand()
 
+    print("SG:", sg)
+    print("PD:", pd)
+    print("Kauffman (actual):")
+    print(p_actual)
+    print("Kauffman (expected):")
+    print(p_expected)
+
     if p_actual == p_expected:
-        print("SG:", sg)
         print(f"=> Correct {bench_time:.2f}s")
         return True
     else:
-        print(stdout_buff.getvalue())
-
-        print("PD:", pd)
-        print("SG:", sg)
         print("=> Wrong")
-        print("Kauffman (actual):")
-        print(p_actual)
-        print("Kauffman (expected):")
-        print(p_expected)
         return False
 
 
@@ -75,12 +72,25 @@ def process_knotinfo_polynomial(k_info, pd_key, paren_spec) -> bool:
 #         break
 
 
+# for i, k_data in enumerate(list_of_links):
+#     print(f"Test {i + 1}/{len(list_of_links)}")
+#     result = process_knotinfo_polynomial(k_data, 'pd_notation_vector', '{{}}')
+#     if not result:
+#         break
+
+
 list_of_links = database_knotinfo.link_list(proper_links=True)[2:]
-for i, k_data in enumerate(list_of_links):
-    print(f"Test {i + 1}/{len(list_of_links)}")
-    result = process_knotinfo_polynomial(k_data, 'pd_notation_vector', '{{}}')
-    if not result:
-        break
+process_knotinfo_polynomial(list_of_links[1500], 'pd_notation_vector', '{{}}')
+
+
+def knotinfo_by_name(db, name):
+    """
+    Find knot information by name in the database.
+    """
+    return next(
+        (knot for knot in db if knot['name'] == name),
+        None
+    )
 
 
 # test_polynomial(

@@ -62,7 +62,7 @@ def kauffman_polynomial(link: SGCode) -> Poly:
             return a ** link.writhe()
 
         else:
-            depth_print(f"ℹ️  applying skein, lambda = {unknotting_seq}")
+            depth_print(f"ℹ️  applying skein")
             link_switched = link.switch_crossing(unknotting_seq[0])
             link_spliced_h = link_switched.splice_h(unknotting_seq[0])
             link_spliced_v = link_switched.splice_v(unknotting_seq[0])
