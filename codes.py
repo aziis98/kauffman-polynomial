@@ -5,9 +5,9 @@ from typing import Literal, Iterable
 from dataclasses import dataclass
 
 import graphs
-from graphs import Graph, collapse_loops
+from graphs import Graph, collapse_loops, find_disjoint_loops
 
-from utils import sorted_tuple, rotate_to_minimal, sign_str
+from utils import sorted_tuple, rotate_to_minimal, sign_str, depth_print
 
 
 Sign = Literal[+1, -1]
@@ -77,8 +77,11 @@ class SGCodeCrossing:
         """
         return SGCodeCrossing(self.id, self.over_under, -self.handedness)
 
-    def __repr__(self):
+    def __str__(self):
         return f"{sign_str(self.over_under)}{self.id}{sign_str(self.handedness, mode='sup')}"
+
+    def __repr__(self):
+        return f"({sign_str(self.over_under)}{self.id}, {sign_str(self.handedness)}1)"
 
     def __lt__(self, other: SGCodeCrossing):
         # return self.id < other.id
@@ -89,6 +92,9 @@ class SGCodeCrossing:
 @dataclass(frozen=True)
 class SGCode:
     components: list[list[SGCodeCrossing]]
+
+    def __str__(self):
+        return f"{self.components}"
 
     def __repr__(self):
         return f"{self.components}"
@@ -225,7 +231,7 @@ class SGCode:
             get_neighbors=lambda i: component_adj[i]
         )
 
-    def unlinked_components(self) -> Graph[tuple[int, ...]]:
+    def unlinked_components(self) -> list[list[int]]:
         # print(self)
 
         # graph where "i -> j" iff "i overlies j"
@@ -249,7 +255,17 @@ class SGCode:
                 if crossing.is_over():
                     graph_of_overlies[i1].add(i2)
 
-        return collapse_loops(graph_of_overlies)
+        depth_print(f"ℹ️  {graph_of_overlies!r}")
+
+        components = find_disjoint_loops(graph_of_overlies)
+        present_ids = set(id for component in components for id in component)
+
+        # add remaining singletons
+        for i in range(len(self.components)):
+            if i not in present_ids:
+                components.append([i])
+
+        return components
 
     # def to_std_unknot(self) -> SGCode:
     #     visited_crossings: set[int] = set()

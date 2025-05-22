@@ -47,7 +47,7 @@ def kauffman_polynomial(link: SGCode) -> Poly:
     if len(link.components) == 0:
         return 0
 
-    disconnected_components = [*link.unlinked_components().keys()]
+    disconnected_components: list[list[int]] = link.unlinked_components()
 
     assert len(disconnected_components) > 0
 
@@ -62,19 +62,27 @@ def kauffman_polynomial(link: SGCode) -> Poly:
             return a ** link.writhe()
 
         else:
-            depth_print("ℹ️  single knotted component")
+            depth_print(f"ℹ️  applying skein, lambda = {unknotting_seq}")
             link_switched = link.switch_crossing(unknotting_seq[0])
             link_spliced_h = link_switched.splice_h(unknotting_seq[0])
             link_spliced_v = link_switched.splice_v(unknotting_seq[0])
 
+            depth_print(f"ℹ️  splice h, lambda = {unknotting_seq}")
+            k_link_spliced_h = kauffman_polynomial(link_spliced_h)
+
+            depth_print(f"ℹ️  splice v, lambda = {unknotting_seq}")
+            k_link_spliced_v = kauffman_polynomial(link_spliced_v)
+
+            depth_print(f"ℹ️  switch, lambda = {unknotting_seq}")
+            k_link_switched = kauffman_polynomial(link_switched)
+
             return (
-                z * (kauffman_polynomial(link_spliced_h) +
-                     kauffman_polynomial(link_spliced_v))
-                - kauffman_polynomial(link_switched)
+                z * (k_link_spliced_h + k_link_spliced_v)
+                - k_link_switched
             )
 
     else:
-        depth_print("ℹ️  multiple unlinked components")
+        depth_print(f"ℹ️  split link: {disconnected_components}")
 
         result = 1
         for k, component_ids in enumerate(disconnected_components):
