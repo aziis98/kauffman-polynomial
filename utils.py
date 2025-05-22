@@ -2,10 +2,43 @@ import functools
 from sympy import latex
 
 
+import re
+
+
 from typing import Literal
 
 _global_depth = 0
 _global_debug = True
+
+
+def parse_nested_list(
+    text: str,
+    paren_spec: str = '{{}}',
+    separator: str = ','
+) -> list[list[int]]:
+    outer_open: str = paren_spec[0]
+    outer_close: str = paren_spec[3]
+    inner_open: str = paren_spec[1]
+    inner_close: str = paren_spec[2]
+
+    text = text.strip()
+
+    if not (text.startswith(outer_open) and text.endswith(outer_close)):
+        raise ValueError(
+            f"Mismatched outer delimiters: Expected '{outer_open}' and '{outer_close}'"
+        )
+
+    core_content = text[len(outer_open):-len(outer_close)].strip()
+    inner_list_re_pattern = rf"{re.escape(inner_open)}\s*((?:\d+\s*(?:{re.escape(separator)}\s*\d+)*)?)\s*{re.escape(inner_close)}"
+
+    return [
+        [
+            int(n.strip())
+            for n in c.split(separator) if n.strip()
+        ]
+        if c.strip() else []
+        for c in re.findall(inner_list_re_pattern, core_content)
+    ]
 
 
 def rotate_to_minimal(l):

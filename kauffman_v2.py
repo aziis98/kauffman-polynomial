@@ -12,7 +12,7 @@ d = (a + 1 / a) / z - 1
 _fn_calls_count = 0
 
 
-def wrap_before(func):
+def polynomial_wrapper(func):
     @wraps(func)
     def wrapper(link: SGCode):
         global _fn_calls_count
@@ -21,14 +21,14 @@ def wrap_before(func):
 
         _fn_calls_count += 1
 
-        depth_print("ℹ️  wrapping before...")
+        # depth_print("ℹ️  wrapping before...")
         # K8_18
         # simple: 1004
         # cache: 936
         # cache, relabel: 814
         # cache, relabel, to_minimal: 999 (???)
         # result = func(link.to_minimal())
-        result = func(link.relabel().to_minimal())
+        result = func(link).expand()
 
         if get_depth() == 0:
             print(f"Call Count: {_fn_calls_count}")
@@ -38,7 +38,7 @@ def wrap_before(func):
     return wrapper
 
 
-@wrap_before
+@polynomial_wrapper
 @log_input_output
 @cache
 def kauffman_polynomial(link: SGCode) -> Poly:
@@ -106,6 +106,10 @@ def kauffman_polynomial(link: SGCode) -> Poly:
             if k > 0:
                 result *= d
 
-            result *= kauffman_polynomial(new_link).simplify()
+            result *= kauffman_polynomial(new_link)
 
         return result
+
+
+def f_polynomial(link: SGCode) -> Poly:
+    return (a ** (-link.writhe())) * kauffman_polynomial(link)

@@ -1,5 +1,6 @@
 from __future__ import annotations
-import typing
+
+from typing import Literal, Iterable
 
 from dataclasses import dataclass
 
@@ -9,7 +10,7 @@ from graphs import Graph, collapse_loops
 from utils import sorted_tuple, rotate_to_minimal, sign_str
 
 
-Sign = typing.Literal[+1, -1]
+Sign = Literal[+1, -1]
 
 
 CROSSING_OVER = +1
@@ -142,7 +143,7 @@ class SGCode:
             for c in component
         ) // 2
 
-    def reverse(self, ids: typing.Literal['*'] | list[int] = '*'):
+    def reverse(self, ids: Literal['*'] | list[int] = '*'):
         """
         Reverse the signed Gauss code.
         :return: Reversed signed Gauss code
@@ -447,7 +448,7 @@ class SGCode:
                 under_crossing_ids = set(c.id for c in l2 if c.is_under())
                 non_self_crossing_ids = over_crossing_ids ^ under_crossing_ids
 
-                def update_signs(strand):
+                def update_signs(strand: Iterable[SGCodeCrossing]):
                     return [
                         c.flip_handedness() if c.id in non_self_crossing_ids else c
                         for c in strand
@@ -465,17 +466,6 @@ class SGCode:
                         *update_signs(l3),
                     ],
                 ])
-
-                # return SGCode([
-                #     *(component[:]
-                #       for i, component in enumerate(self.components)
-                #       if i != component_index),
-                #     [
-                #         *l1,
-                #         *l2[::-1],
-                #         *l3,
-                #     ],
-                # ])
         else:
             l1 = self.components[over_index[0]][:over_index[1]]
             l2 = self.components[over_index[0]][over_index[1] + 1:]
@@ -484,6 +474,8 @@ class SGCode:
             m2 = self.components[under_index[0]][under_index[1] + 1:]
 
             if handedness * orthogonal == HANDED_LEFT:
+                # print("splice type +1", (id, handedness, orthogonal))
+
                 return SGCode([
                     *(component[:]
                       for i, component in enumerate(self.components)
@@ -496,13 +488,39 @@ class SGCode:
                     ]
                 ])
             else:
-                over_crossing_ids = set(c.id for c in m1 if c.is_over()) | set(
-                    c.id for c in m2 if c.is_over())
-                under_crossing_ids = set(c.id for c in m1 if c.is_under()) | set(
-                    c.id for c in m2 if c.is_under())
-                non_self_crossing_ids = over_crossing_ids ^ under_crossing_ids
+                # print("splice type -1", (id, handedness, orthogonal))
 
-                def update_signs(strand):
+                non_self_crossing_ids = (
+                    set(c.id for c in m1 if c.is_over())
+                    |
+                    set(c.id for c in m2 if c.is_over())
+                ) ^ (
+                    set(c.id for c in m1 if c.is_under())
+                    |
+                    set(c.id for c in m2 if c.is_under())
+                )
+
+                # non_self_crossing_ids = (
+                #     set(c.id for c in m1) | set(c.id for c in m2)
+                # ) - (
+                #     (
+                #         set(c.id for c in m1 if c.is_over())
+                #         | set(c.id for c in m2 if c.is_over())
+                #     )
+                #     &
+                #     (
+                #         set(c.id for c in m1 if c.is_under())
+                #         | set(c.id for c in m2 if c.is_under())
+                #     )
+                # )
+
+                # if len(non_self_crossing_ids_old) != len(non_self_crossing_ids):
+                #     print(self, id, orthogonal)
+                #     print(non_self_crossing_ids_old)
+                #     print(non_self_crossing_ids)
+                #     raise ValueError("illegal state")
+
+                def update_signs(strand: Iterable[SGCodeCrossing]):
                     return [
                         c.flip_handedness() if c.id in non_self_crossing_ids else c
                         for c in strand
@@ -522,106 +540,8 @@ class SGCode:
                     ],
                 ])
 
-                # return SGCode([
-                #     *(component[:]
-                #       for i, component in enumerate(self.components)
-                #       if i != over_index[0] and i != under_index[0]),
-                #     [
-                #         *l1,
-                #         *m1[::-1],
-                #         *m2[::-1],
-                #         *l2
-                #     ]
-                # ])
-
     def splice_v(self, id: int):
         return self.splice_h(id, orthogonal=-1)
-
-        # (under_idx, under_crossing), (over_idx, over_crossing) = tuple(
-        #     sorted(
-        #         (
-        #             ((i, j), crossing)
-        #             for i, component in enumerate(self.components)
-        #             for j, crossing in enumerate(component)
-        #             if crossing.id == id
-        #         ),
-        #         key=lambda c: c[1].over_under
-        #     )
-        # )
-
-        # #  print(over_idx, over_crossing)
-        # #  print(under_idx, under_crossing)
-
-        # assert over_crossing.handedness == under_crossing.handedness
-
-        # is_same_component = over_idx[0] == under_idx[0]
-        # handedness = over_crossing.handedness
-
-        # #  print(f"splice case: v, {is_same_component}, {handedness}")
-
-        # if is_same_component:
-        #     self_crossing_component = self.components[over_idx[0]]
-        #     first_split, second_split = tuple(
-        #         sorted([over_idx[1], under_idx[1]])
-        #     )
-
-        #     l1 = self_crossing_component[:first_split]
-        #     l2 = self_crossing_component[first_split + 1:second_split]
-        #     l3 = self_crossing_component[second_split + 1:]
-
-        #     if handedness == HANDED_LEFT:
-        #         return SGCode([
-        #             *(component[:]
-        #               for i, component in enumerate(self.components)
-        #               if i != over_idx[0]),
-        #             [
-        #                 *l1,
-        #                 *l2[::-1],
-        #                 *l3,
-        #             ],
-        #         ])
-        #     else:
-        #         return SGCode([
-        #             *(component[:]
-        #               for i, component in enumerate(self.components)
-        #               if i != over_idx[0]),
-        #             [
-        #                 *l1,
-        #                 *l3,
-        #             ],
-        #             l2,
-        #         ])
-        # else:
-        #     l1 = self.components[over_idx[0]][:over_idx[1]]
-        #     l2 = self.components[over_idx[0]][over_idx[1] + 1:]
-
-        #     m1 = self.components[under_idx[0]][:under_idx[1]]
-        #     m2 = self.components[under_idx[0]][under_idx[1] + 1:]
-
-        #     if handedness == +1:
-        #         return SGCode([
-        #             *(component[:]
-        #               for i, component in enumerate(self.components)
-        #               if i != over_idx[0] and i != under_idx[0]),
-        #             [
-        #                 *l1,
-        #                 *m1[::-1],
-        #                 *m2[::-1],
-        #                 *l2
-        #             ]
-        #         ])
-        #     else:
-        #         return SGCode([
-        #             *(component[:]
-        #               for i, component in enumerate(self.components)
-        #               if i != over_idx[0] and i != under_idx[0]),
-        #             [
-        #                 *l1,
-        #                 *m2,
-        #                 *m1,
-        #                 *l2
-        #             ]
-        #         ])
 
     def switch_crossing(self, id: int):
         """
@@ -760,13 +680,14 @@ class PDCode:
         return components
 
     @staticmethod
-    def from_tuples(link: list[tuple[int, int, int, int]]):
+    def from_tuples(link: list[list[int] | tuple[int, int, int, int]]):
         """
         e.g. link = [(3, 6, 4, 1), (5, 2, 6, 3), (4, 2, 5, 1)]
         """
 
         crossings = []
-        for i, j, k, l in link:
+        for crossing_spec in link:
+            i, j, k, l = tuple(crossing_spec)
             crossings.append(PDCodeCrossing(i, j, k, l))
 
         return PDCode(crossings)

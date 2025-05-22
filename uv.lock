@@ -12,6 +12,15 @@ wheels = [
 ]
 
 [[package]]
+name = "database-knotinfo"
+version = "2024.12.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e2/6b/099ad5149f871fc4178b0ef729d1305b823b779c2661a5800200fc04d157/database_knotinfo-2024.12.1.tar.gz", hash = "sha256:0991ecf5ba0591ccafd86e6c0cd8a00b561f467ab72d68c1cf780bf2b1382e3a", size = 14815370, upload-time = "2024-12-01T22:20:30.507Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b9/c6/428214b4b161cf9ee18f163aed1179ddc034eddf216646fc1b796c2d2da2/database_knotinfo-2024.12.1-py3-none-any.whl", hash = "sha256:0dd63e403b32c9fe5183ffaf4d7c219a5268993cbc60eeb1969c64fdbd1df67d", size = 15347424, upload-time = "2024-12-01T22:20:27.489Z" },
+]
+
+[[package]]
 name = "iniconfig"
 version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -25,6 +34,7 @@ name = "kauffman-lib-1"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "database-knotinfo" },
     { name = "pytest" },
     { name = "sympy" },
     { name = "tqdm" },
@@ -32,6 +42,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "database-knotinfo", specifier = ">=2024.12.1" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "sympy", specifier = ">=1.14.0" },
     { name = "tqdm", specifier = ">=4.67.1" },
