@@ -118,6 +118,7 @@ if __name__ == "__main__":
             links_list = links_list[:int(args.count)]
 
         count = len(links_list)
+        count_size = len(str(count)) + 1
 
         for i, k_data in enumerate(links_list):
             name = k_data['name']
@@ -131,15 +132,15 @@ if __name__ == "__main__":
             matches, p_actual, bench_time = process_polynomial(sg, p_expected)
             if matches:
                 print(
-                    f"{str(i + 1).rjust(1 + math.ceil(math.log10(count)))}/{count} > {name.ljust(14)} [{bench_time:.2f}s] => Correct"
+                    f"{str(i + 1).rjust(count_size)}/{count} > {name.ljust(14)} [{bench_time:.2f}s] => Correct"
                 )
             else:
                 print(
-                    f"{str(i + 1).rjust(1 + math.ceil(math.log10(count)))}/{count} > {name.ljust(14)} [{bench_time:.2f}s] => Wrong"
+                    f"{str(i + 1).rjust(count_size)}/{count} > {name.ljust(14)} [{bench_time:.2f}s] => Wrong"
                 )
 
                 prefix = " " * len(
-                    f"{str(i + 1).rjust(1 + math.ceil(math.log10(count)))}/{count} > {name.ljust(14)} "
+                    f"{str(i + 1).rjust(count_size)}/{count} "
                 )
 
                 print(f"{prefix}> SG:", sg)
@@ -156,6 +157,7 @@ if __name__ == "__main__":
             links_list = links_list[:int(args.count)]
 
         count = len(links_list)
+        count_size = len(str(count)) + 1
 
         for i, k_data in enumerate(links_list):
             name = k_data['name']
@@ -169,15 +171,20 @@ if __name__ == "__main__":
             matches, p_actual, bench_time = process_polynomial(sg, p_expected)
             if matches:
                 print(
-                    f"{str(i + 1).rjust(1 + math.ceil(math.log10(count)))}/{count} > {name.ljust(14)} [{bench_time:.2f}s] => Correct"
+                    f"{str(i + 1).rjust(count_size)}/{count} > {name.ljust(14)} [{bench_time:.2f}s] => Correct"
                 )
             else:
                 print(
-                    f"{str(i + 1).rjust(1 + math.ceil(math.log10(count)))}/{count} > {name.ljust(14)} [{bench_time:.2f}s] => Wrong"
+                    f"{str(i + 1).rjust(count_size)}/{count} > {name.ljust(14)} [{bench_time:.2f}s] => Wrong"
                 )
-                print(f"> SG:", sg)
-                print(f"> PD:", pd)
-                print(f"> Kauffman (actual):")
-                print(f"> {p_actual}")
-                print(f"> Kauffman (expected):")
-                print(f"> {p_expected}")
+
+                prefix = " " * len(
+                    f"{str(i + 1).rjust(count_size)}/{count} "
+                )
+
+                print(f"{prefix}> SG:", sg)
+                print(f"{prefix}> PD:", pd)
+                print(f"{prefix}> Kauffman (actual):")
+                print(f"{prefix}> {p_actual}")
+                print(f"{prefix}> Kauffman (expected):")
+                print(f"{prefix}> {p_expected}")
