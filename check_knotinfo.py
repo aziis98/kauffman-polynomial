@@ -10,7 +10,6 @@ import database_knotinfo
 import io
 import time
 import argparse
-import math
 
 
 a, z = symbols("a z")
@@ -36,47 +35,7 @@ def process_polynomial(sg, p_expected) -> tuple[bool, Poly, float]:
     end = time.time()
     bench_time = end - start
 
-    # p_expected = parse_expr(k_info['kauffman_polynomial'].replace('^', '**')).expand()
-
-    # print("SG:", sg)
-    # print("Kauffman (actual):")
-    # print(p_actual)
-    # print("Kauffman (expected):")
-    # print(p_expected)
-
-    if p_actual == p_expected:
-        return (True, p_actual, bench_time)
-    else:
-        return (False, p_actual, bench_time)
-
-
-# knots_list_1 = database_knotinfo.link_list()[2:200]
-# for i, k_data in enumerate(knots_list_1):
-#     print(f"Test {i + 1}/{len(knots_list_1)}")
-#     result = process_knotinfo_polynomial(k_data, 'pd_notation', '[[]]')
-#     if not result:
-#         break
-
-
-# for i, k_data in enumerate(list_of_links):
-#     print(f"Test {i + 1}/{len(list_of_links)}")
-#     result = process_knotinfo_polynomial(k_data, 'pd_notation_vector', '{{}}')
-#     if not result:
-#         break
-
-
-# list_of_links = database_knotinfo.link_list(proper_links=True)[2:]
-# process_knotinfo_polynomial(list_of_links[1500], 'pd_notation_vector', '{{}}')
-
-
-def knotinfo_by_name(db, name):
-    """
-    Find knot information by name in the database.
-    """
-    return next(
-        (knot for knot in db if knot['name'] == name),
-        None
-    )
+    return (p_actual == p_expected, p_actual, bench_time)
 
 
 if __name__ == "__main__":
