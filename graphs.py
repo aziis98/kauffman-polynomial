@@ -121,38 +121,39 @@ def collapse_loops(g: Graph[T]) -> Graph[tuple[T, ...]]:
     return new_graph
 
 
-# def find_disjoint_loops(g: Graph[T]) -> list[list[T]]:
-#     """
-#     Find disjoint loops in a graph.
+def find_disjoint_loops(g: Graph[T]) -> list[list[T]]:
+    """
+    Find disjoint loops in a graph.
 
-#     Args:
-#         g: The input graph represented as a dictionary.
+    Args:
+        g: The input graph represented as a dictionary.
 
-#     Returns:
-#         A list of lists, where each list contains the vertices in a loop.
-#     """
-#     visited = set()
-#     loops = []
+    Returns:
+        A list of lists, where each list contains the vertices in a loop.
+    """
+    visited = set()
+    loops = []
 
-#     def dfs(vertex: T, path: list[T]):
-#         if vertex in visited:
-#             return
-#         visited.add(vertex)
-#         path.append(vertex)
+    def dfs(vertex: T, path: list[T]):
+        if vertex in visited:
+            return
+        visited.add(vertex)
+        path.append(vertex)
 
-#         for neighbor in g[vertex]:
-#             if neighbor not in visited:
-#                 dfs(neighbor, path)
-#             elif neighbor in path and len(path) > 1:
-#                 loops.append(path[path.index(neighbor):])
+        for neighbor in g[vertex]:
+            if neighbor not in visited:
+                dfs(neighbor, path)
+            elif neighbor in path and len(path) > 1:
+                loops.append(path[path.index(neighbor):])
 
-#         path.pop()
+        path.pop()
 
-#     for vertex in g:
-#         if vertex not in visited:
-#             dfs(vertex, [])
+    for vertex in g:
+        if vertex not in visited:
+            dfs(vertex, [])
 
-#     return loops
+    return loops
+
 
 def find_roots(g: Graph[T]) -> list[T]:
     """
