@@ -52,28 +52,28 @@ def kauffman_polynomial(link: SGCode) -> Poly:
     assert len(disconnected_components) > 0
 
     if len(disconnected_components) == 1:
-        unknotting_seq = link.std_unknot_switching_sequence()
+        unknot_index = link.first_switch_to_std_unknot()
 
         link_rev = link.reverse()
-        unknotting_seq_rev = link_rev.std_unknot_switching_sequence()
+        unknot_index_rev = link_rev.first_switch_to_std_unknot()
 
-        if len(unknotting_seq) == 0 or len(unknotting_seq_rev) == 0:
+        if unknot_index == False or unknot_index_rev == False:
             depth_print("ℹ️  standard unknot form")
             return a ** link.writhe()
 
         else:
             depth_print(f"ℹ️  applying skein")
-            link_switched = link.switch_crossing(unknotting_seq[0])
-            link_spliced_h = link_switched.splice_h(unknotting_seq[0])
-            link_spliced_v = link_switched.splice_v(unknotting_seq[0])
+            link_switched = link.switch_crossing(unknot_index)
+            link_spliced_h = link_switched.splice_h(unknot_index)
+            link_spliced_v = link_switched.splice_v(unknot_index)
 
-            depth_print(f"ℹ️  splice h, lambda = {unknotting_seq}")
+            depth_print(f"ℹ️  splice h, lambda = [{unknot_index}...]")
             k_link_spliced_h = kauffman_polynomial(link_spliced_h)
 
-            depth_print(f"ℹ️  splice v, lambda = {unknotting_seq}")
+            depth_print(f"ℹ️  splice v, lambda = [{unknot_index}...]")
             k_link_spliced_v = kauffman_polynomial(link_spliced_v)
 
-            depth_print(f"ℹ️  switch, lambda = {unknotting_seq}")
+            depth_print(f"ℹ️  switch, lambda = [{unknot_index}...]")
             k_link_switched = kauffman_polynomial(link_switched)
 
             return (

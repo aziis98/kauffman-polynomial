@@ -365,6 +365,17 @@ class SGCode:
 
         return switched_crossings
 
+    def first_switch_to_std_unknot(self) -> (int | bool):
+        visited_crossings: set[int] = set()
+
+        for component in self.components:
+            for crossing in component:
+                if crossing.id not in visited_crossings and crossing.is_under():
+                    return crossing.id
+                visited_crossings.add(crossing.id)
+
+        return False
+
     def split_component(self, i: int) -> tuple[SGCode, SGCode, list[int]]:
         """
         Split the component at index i into K_i and K - K_i
