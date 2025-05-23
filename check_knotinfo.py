@@ -143,7 +143,6 @@ if __name__ == "__main__":
                 print(f"> {p_actual}")
                 print(f"> Kauffman (expected):")
                 print(f"> {p_expected}")
-                break
 
     if args.all_links:
         links_list = database_knotinfo.link_list(proper_links=True)[2:]
@@ -177,4 +176,3 @@ if __name__ == "__main__":
                 print(f"> {p_actual}")
                 print(f"> Kauffman (expected):")
                 print(f"> {p_expected}")
-                break
