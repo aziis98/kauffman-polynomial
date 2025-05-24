@@ -67,8 +67,17 @@ if __name__ == "__main__":
         default=None,
         help="Number of knots to test",
     )
+    parser.add_argument(
+        '-s', '--skip',
+        default=None,
+        help="Number of knots to skip",
+    )
 
     args = parser.parse_args()
+
+    skip_count = 0
+    if args.skip is not None:
+        skip_count = int(args.skip)
 
     if args.all_knots:
         links_list = database_knotinfo.link_list()[2:]
@@ -80,6 +89,12 @@ if __name__ == "__main__":
         count_size = len(str(count)) + 1
 
         for i, k_data in enumerate(links_list):
+            if i < skip_count:
+                print(
+                    f"Skipping {str(i + 1).rjust(count_size)}/{count} > {k_data['name']}"
+                )
+                continue
+
             name = k_data['name']
             pd_code = k_data['pd_notation']
             p_expected_raw = k_data['kauffman_polynomial']
@@ -119,6 +134,12 @@ if __name__ == "__main__":
         count_size = len(str(count)) + 1
 
         for i, k_data in enumerate(links_list):
+            if i < skip_count:
+                print(
+                    f"Skipping {str(i + 1).rjust(count_size)}/{count} > {k_data['name']}"
+                )
+                continue
+
             name = k_data['name']
             pd_code = k_data['pd_notation_vector']
             p_expected_raw = k_data['kauffman_polynomial']
