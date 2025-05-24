@@ -203,7 +203,7 @@ if __name__ == "__main__":
 
     manager = multiprocessing.Manager()
 
-    if args.all_knots:
+    if args.knots:
         knots_list_full = database_knotinfo.link_list()[2:]
 
         if args.count is not None:
@@ -252,7 +252,7 @@ if __name__ == "__main__":
         elif original_total_count > 0:
             print("All knots skipped.")
 
-    if args.all_links:
+    if args.links:
         links_list_full = database_knotinfo.link_list(proper_links=True)[2:]
 
         if args.count is not None:
