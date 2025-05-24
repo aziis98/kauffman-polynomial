@@ -1,4 +1,4 @@
-name: Test Polynomials
+name: Test first 50 polynomials
 
 on:
   push:
