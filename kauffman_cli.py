@@ -131,16 +131,18 @@ def kauffman_cli():
     elapsed_time = end_time - start_time
     print(f"Elapsed time: {elapsed_time:.2f} seconds")
 
-    print(f"Polynomial (actual): {p_actual}")
+    print(f"Writhe: {sg.writhe()}")
+
+    print(f"Polynomial (actual):\n{p_actual}")
 
     if poly_label and knot_entry and knot_entry[poly_label]:
         p_expected_raw = knot_entry[poly_label]
         p_expected = parse_expr(p_expected_raw.replace("^", "**")).expand()
         matches = p_actual == p_expected
 
-        print(f"Polynomial (raw): {p_expected_raw}")
-        print(f"Polynomial (expanded): {p_expected}")
-        print(f"Match: {matches}")
+        # print(f"Polynomial (raw):\n{p_expected_raw}")
+        print(f"Polynomial (expected):\n{p_expected}")
+        print(f"=> Match: {matches}")
 
 
 if __name__ == "__main__":
