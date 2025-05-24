@@ -59,11 +59,11 @@ def print_result(
 
     if matches:
         print(
-            f"{str(i + 1).rjust(count_size)}/{total} > {name.ljust(14)} [{bench_time:.2f}s] => Correct"
+            f"{str(i + 1).rjust(count_size)}/{total} > {name} [{bench_time:.2f}s] => Correct"
         )
     else:
         print(
-            f"{str(i + 1).rjust(count_size)}/{total} > {name.ljust(14)} [{bench_time:.2f}s] => Wrong"
+            f"{str(i + 1).rjust(count_size)}/{total} > {name} [{bench_time:.2f}s] => Wrong"
         )
 
         prefix = " " * len(
@@ -78,7 +78,7 @@ def print_result(
         print(f"{prefix}> {p_expected}")
 
 
-def process_entry_worker(queue, index, total_count_for_display, knotinfo_entry, is_link):
+def process_entry_worker(queue, index, knotinfo_entry, is_link):
     """
     Worker function to process a single knot/link entry.
     To be run in a ProcessPoolExecutor.
@@ -122,8 +122,10 @@ def result_processor_thread_func(queue, num_items_to_process, original_total_for
             idx_to_print, name, matches, p_actual, p_expected, sg, pd, bench_time = results_buffer.pop(
                 current_expected_original_idx)
 
-            print_result(idx_to_print, original_total_for_display,
-                         name, matches, p_actual, p_expected, sg, pd, bench_time)
+            print_result(
+                idx_to_print, original_total_for_display,
+                name, matches, p_actual, p_expected, sg, pd, bench_time
+            )
 
             num_items_printed += 1
             current_expected_original_idx += 1
@@ -189,10 +191,14 @@ if __name__ == "__main__":
 
         tasks_to_submit = []
         for i, knotinfo_entry in enumerate(knots_list_to_process):
+            count_size = len(str(original_total_count)) + 1
             if i < skip_count:
-                count_size = len(str(original_total_count)) + 1
                 print(
-                    f"Skipping {str(i + 1).rjust(count_size)}/{original_total_count} > {knotinfo_entry['name']}"
+                    f"{str(i + 1).rjust(count_size)}/{original_total_count} > {knotinfo_entry['name']} (skipped)"
+                )
+            elif 'kauffman_polynomial' not in knotinfo_entry:
+                print(
+                    f"{str(i + 1).rjust(count_size)}/{original_total_count} > {knotinfo_entry['name']} (no polynomial found)"
                 )
             else:
                 tasks_to_submit.append((i, knotinfo_entry))
@@ -210,8 +216,10 @@ if __name__ == "__main__":
 
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 for original_idx, entry_data in tasks_to_submit:
-                    executor.submit(process_entry_worker, results_queue,
-                                    original_idx, original_total_count, entry_data, False)
+                    executor.submit(
+                        process_entry_worker,
+                        results_queue, original_idx, entry_data, False
+                    )
 
             result_thread.join()
         elif original_total_count > 0:
@@ -231,10 +239,14 @@ if __name__ == "__main__":
 
         tasks_to_submit = []
         for i, knotinfo_entry in enumerate(links_list_to_process):
+            count_size = len(str(original_total_count)) + 1
             if i < skip_count:
-                count_size = len(str(original_total_count)) + 1
                 print(
-                    f"Skipping {str(i + 1).rjust(count_size)}/{original_total_count} > {knotinfo_entry['name']}"
+                    f"{str(i + 1).rjust(count_size)}/{original_total_count} > {knotinfo_entry['name']} (skipped)"
+                )
+            elif 'kauffman_polynomial' not in knotinfo_entry:
+                print(
+                    f"{str(i + 1).rjust(count_size)}/{original_total_count} > {knotinfo_entry['name']} (no polynomial found)"
                 )
             else:
                 tasks_to_submit.append((i, knotinfo_entry))
@@ -252,8 +264,10 @@ if __name__ == "__main__":
 
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 for original_idx, entry_data in tasks_to_submit:
-                    executor.submit(process_entry_worker, results_queue,
-                                    original_idx, original_total_count, entry_data, True)
+                    executor.submit(
+                        process_entry_worker,
+                        results_queue, original_idx, entry_data, True
+                    )
 
             result_thread.join()
         elif original_total_count > 0:
