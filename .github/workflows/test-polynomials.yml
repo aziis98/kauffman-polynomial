@@ -1,0 +1,44 @@
+name: Test Polynomials
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test-polynomials:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-case:
+          - name: "HOMFLY Polynomial - Knots"
+            command: "python check_knotinfo.py --polynomial P --knots -c 50"
+          - name: "Kauffman Polynomial - Knots"
+            command: "python check_knotinfo.py --polynomial F --knots -c 50"
+          - name: "Kauffman Polynomial - Links"
+            command: "python check_knotinfo.py --polynomial F --links -c 50"
+      fail-fast: false
+    
+    name: ${{ matrix.test-case.name }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: uv sync
+    
+    - name: Run polynomial test
+      run: uv run ${{ matrix.test-case.command }}
+      timeout-minutes: 30
