@@ -2,9 +2,13 @@ name: Test first 50 polynomials
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
+    paths:
+      - '**.py'
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
+    paths:
+      - '**.py'
   workflow_dispatch:
 
 jobs:
