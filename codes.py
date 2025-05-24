@@ -279,7 +279,7 @@ class SGCode:
             len(component) for component in result
         ) == len(self.components)
 
-        depth_print(f"ℹ️  {result}")
+        # depth_print(f"ℹ️  {result}")
         return result
 
     @deprecated("Kept for backward compat, but this function is not a partition of the components.")

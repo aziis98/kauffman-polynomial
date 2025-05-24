@@ -9,23 +9,22 @@ v, z = symbols("v z")
 d = (v ** (-1) - v) / z
 
 
-# _fn_calls_count = 0
+_fn_calls_count = 0
 
 
 def wrap_before(func):
     @wraps(func)
     def wrapper(link: SGCode):
-        # global _fn_calls_count
-        # if get_depth() == 0:
-        #     _fn_calls_count = 0
+        global _fn_calls_count
+        if get_depth() == 0:
+            _fn_calls_count = 0
 
-        # _fn_calls_count += 1
+        _fn_calls_count += 1
 
-        # depth_print("ℹ️  wrapping before...")
-        result = func(link.relabel())
+        result = func(link).expand()
 
-        # if get_depth() == 0:
-        #     print(f"Call Count: {_fn_calls_count}")
+        if get_depth() == 0:
+            print(f"Call Count: {_fn_calls_count}")
 
         return result
 
@@ -43,40 +42,53 @@ def homfly_polynomial(link: SGCode) -> Poly:
 
     assert len(link.components) > 0
 
-    disconnected_components = [*link.unlinked_components().keys()]
-    if len(disconnected_components) == 1:
-        unknotting_seq = link.std_unknot_switching_sequence()
+    disconnected_components = link.overlies_decomposition()
 
-        if len(unknotting_seq) == 0:
+    if len(disconnected_components) == 1:
+        unknotting_index = link.first_switch_to_std_unknot()
+
+        if unknotting_index == False:
             depth_print("ℹ️  standard unknot form")
             return v**0
 
         else:
             depth_print("ℹ️  single knotted component")
-            depth_print(f"ℹ️  unknotting seq: {unknotting_seq!r}")
+            depth_print(f"ℹ️  unknotting index: {unknotting_index!r}")
 
-            link_switched = link.switch_crossing(unknotting_seq[0])
+            link_switched = link.switch_crossing(unknotting_index)
 
-            if link.get_crossing_handedness(unknotting_seq[0]) == HANDED_LEFT:
-                link_spliced = link.splice_h(unknotting_seq[0])
+            if link.get_crossing_handedness(unknotting_index) == HANDED_LEFT:
+                depth_print(f"ℹ️  spliced")
+                homfly_spliced = homfly_polynomial(
+                    link.splice_h(unknotting_index)
+                )
 
+                depth_print(f"ℹ️  switched")
+                homfly_switched = homfly_polynomial(link_switched)
+
+                # P(L_+) = v * (P(L_0) * z + P(L_-) * v)
                 return v * (
-                    z * homfly_polynomial(link_spliced)
-                    + v * homfly_polynomial(link_switched)
+                    homfly_spliced * z + homfly_switched * v
                 )
 
             else:
-                link_spliced = link.splice_v(unknotting_seq[0])
+                depth_print(f"ℹ️  spliced")
+                homfly_spliced = homfly_polynomial(
+                    link.splice_v(unknotting_index)
+                )
 
+                depth_print(f"ℹ️  switched")
+                homfly_switched = homfly_polynomial(link_switched)
+
+                # P(L_-) = (P(L_+) / v -  P(L_0) * z) / v
                 return 1 / v * (
-                    homfly_polynomial(link_switched) / v
-                    - z * homfly_polynomial(link_spliced)
+                    homfly_switched / v - homfly_spliced * z
                 )
 
     else:
         depth_print("ℹ️  multiple unlinked components")
 
-        result = v**0
+        result = 1
         for k, component_ids in enumerate(disconnected_components):
             own_crossings = set(
                 crossing.id

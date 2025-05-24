@@ -1,4 +1,6 @@
 from codes import SGCode, PDCode
+
+from homfly import homfly_polynomial
 from kauffman_v2 import f_polynomial
 
 from sympy import Poly, parse_expr, symbols, init_printing
@@ -20,19 +22,25 @@ d = (a + 1 / a) / z - 1
 init_printing()
 
 
-def process_polynomial(sg, p_expected) -> tuple[bool, Poly, float]:
+AVAILABLE_POLYNOMIALS = {
+    'P': (homfly_polynomial, "homfly_polynomial"),
+    'F': (f_polynomial, "kauffman_polynomial"),
+}
+
+
+def process_polynomial(sg: SGCode, p_expected: Poly, poly_func) -> tuple[bool, Poly, float]:
     """
-    Tests the Kauffman polynomial for a given knot.
+    Tests the specified polynomial for a given knot.
     """
     stdout_buff = io.StringIO()
     start = time.time()
 
     with redirect_stdout(stdout_buff):
         try:
-            p_actual = f_polynomial(sg).expand()
+            p_actual = poly_func(sg).expand()
 
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error calculating polynomial: {e}")
             p_actual = None
 
     end = time.time()
@@ -51,11 +59,14 @@ def print_result(
     sg: SGCode,
     pd: PDCode,
     bench_time: float,
+    poly_name: str,
 ) -> None:
     """
     Print the result of the polynomial check.
     """
     count_size = len(str(total)) + 1
+    # Capitalize the first letter of poly_name for display
+    display_poly_name = poly_name.replace("_", " ").capitalize()
 
     if matches:
         print(
@@ -72,13 +83,13 @@ def print_result(
 
         print(f"{prefix}> SG:", sg)
         print(f"{prefix}> PD:", pd)
-        print(f"{prefix}> Kauffman (actual):")
+        print(f"{prefix}> {display_poly_name} (actual):")
         print(f"{prefix}> {p_actual}")
-        print(f"{prefix}> Kauffman (expected):")
+        print(f"{prefix}> {display_poly_name} (expected):")
         print(f"{prefix}> {p_expected}")
 
 
-def process_entry_worker(queue, index, knotinfo_entry, is_link):
+def process_entry_worker(queue, index, knotinfo_entry, is_link, poly_func, poly_db_key, poly_name_for_display):
     """
     Worker function to process a single knot/link entry.
     To be run in a ProcessPoolExecutor.
@@ -86,16 +97,20 @@ def process_entry_worker(queue, index, knotinfo_entry, is_link):
     name = knotinfo_entry['name']
     pd_code_key = 'pd_notation_vector' if is_link else 'pd_notation'
     pd_code_str = knotinfo_entry[pd_code_key]
-    p_expected_raw = knotinfo_entry['kauffman_polynomial']
 
+    assert poly_db_key in knotinfo_entry
+
+    p_expected_raw = knotinfo_entry[poly_db_key]
     p_expected = parse_expr(p_expected_raw.replace('^', '**')).expand()
 
     pd_parser_format = '{{}}' if is_link else '[[]]'
     pd = PDCode.from_tuples(parse_nested_list(pd_code_str, pd_parser_format))
     sg = pd.to_signed_gauss_code()
 
-    matches, p_actual, bench_time = process_polynomial(sg, p_expected)
-    queue.put((index, name, matches, p_actual, p_expected, sg, pd, bench_time))
+    matches, p_actual, bench_time = process_polynomial(
+        sg, p_expected, poly_func)
+    queue.put((index, name, matches, p_actual, p_expected,
+              sg, pd, bench_time, poly_name_for_display))
 
 
 def result_processor_thread_func(queue, num_items_to_process, original_total_for_display, first_original_idx_processed):
@@ -108,23 +123,22 @@ def result_processor_thread_func(queue, num_items_to_process, original_total_for
 
     while num_items_printed < num_items_to_process:
         try:
-            # Blocking get, timeout can be added if necessary
             item_tuple = queue.get()
-        except Exception as e:  # Should ideally be more specific if queue.Empty or other exceptions are expected
+        except Exception as e:
             print(f"Error getting from queue: {e}")
-            # Potentially break or continue based on error handling strategy
             continue
 
         original_idx_from_item = item_tuple[0]
         results_buffer[original_idx_from_item] = item_tuple
 
         while current_expected_original_idx in results_buffer:
-            idx_to_print, name, matches, p_actual, p_expected, sg, pd, bench_time = results_buffer.pop(
+            # Unpack the polynomial name
+            idx_to_print, name, matches, p_actual, p_expected, sg, pd, bench_time, poly_name = results_buffer.pop(
                 current_expected_original_idx)
 
             print_result(
                 idx_to_print, original_total_for_display,
-                name, matches, p_actual, p_expected, sg, pd, bench_time
+                name, matches, p_actual, p_expected, sg, pd, bench_time, poly_name
             )
 
             num_items_printed += 1
@@ -149,14 +163,20 @@ if __name__ == "__main__":
         help="Enable debug traces",
     )
     parser.add_argument(
-        '--all-knots',
-        action='store_true',
-        help="Test all knots",
+        '--polynomial',
+        choices=list(AVAILABLE_POLYNOMIALS.keys()),
+        default="F",
+        help=f"Polynomial type: {', '.join(AVAILABLE_POLYNOMIALS.keys())}, default is 'F' (Kauffman polynomial)",
     )
     parser.add_argument(
-        '--all-links',
+        '--knots',
         action='store_true',
-        help="Test all links",
+        help="Include knots from database",
+    )
+    parser.add_argument(
+        '--links',
+        action='store_true',
+        help="Include links from database",
     )
     parser.add_argument(
         '-c', '--count',
@@ -166,10 +186,16 @@ if __name__ == "__main__":
     parser.add_argument(
         '-s', '--skip',
         default=None,
-        help="Number of knots to skip",
+        help="Number of knots to skip, to start processing from a specific index",
     )
 
     args = parser.parse_args()
+
+    selected_poly_func, selected_poly_db_key = AVAILABLE_POLYNOMIALS[args.polynomial]
+    # Use the database key as the name for display, or derive a more friendly one if needed
+    poly_name_for_display = selected_poly_db_key
+
+    print(f"Using polynomial: {poly_name_for_display}")
 
     skip_count = 0
     if args.skip is not None:
@@ -196,9 +222,9 @@ if __name__ == "__main__":
                 print(
                     f"{str(i + 1).rjust(count_size)}/{original_total_count} > {knotinfo_entry['name']} (skipped)"
                 )
-            elif 'kauffman_polynomial' not in knotinfo_entry:
+            elif selected_poly_db_key not in knotinfo_entry:
                 print(
-                    f"{str(i + 1).rjust(count_size)}/{original_total_count} > {knotinfo_entry['name']} (no polynomial found)"
+                    f"{str(i + 1).rjust(count_size)}/{original_total_count} > {knotinfo_entry['name']} (no {poly_name_for_display} found)"
                 )
             else:
                 tasks_to_submit.append((i, knotinfo_entry))
@@ -218,7 +244,8 @@ if __name__ == "__main__":
                 for original_idx, entry_data in tasks_to_submit:
                     executor.submit(
                         process_entry_worker,
-                        results_queue, original_idx, entry_data, False
+                        results_queue, original_idx, entry_data, False,
+                        selected_poly_func, selected_poly_db_key, poly_name_for_display
                     )
 
             result_thread.join()
@@ -244,9 +271,9 @@ if __name__ == "__main__":
                 print(
                     f"{str(i + 1).rjust(count_size)}/{original_total_count} > {knotinfo_entry['name']} (skipped)"
                 )
-            elif 'kauffman_polynomial' not in knotinfo_entry:
+            elif selected_poly_db_key not in knotinfo_entry:
                 print(
-                    f"{str(i + 1).rjust(count_size)}/{original_total_count} > {knotinfo_entry['name']} (no polynomial found)"
+                    f"{str(i + 1).rjust(count_size)}/{original_total_count} > {knotinfo_entry['name']} (no {poly_name_for_display} found)"
                 )
             else:
                 tasks_to_submit.append((i, knotinfo_entry))
@@ -266,7 +293,8 @@ if __name__ == "__main__":
                 for original_idx, entry_data in tasks_to_submit:
                     executor.submit(
                         process_entry_worker,
-                        results_queue, original_idx, entry_data, True
+                        results_queue, original_idx, entry_data, True,
+                        selected_poly_func, selected_poly_db_key, poly_name_for_display
                     )
 
             result_thread.join()
