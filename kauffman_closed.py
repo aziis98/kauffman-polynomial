@@ -27,7 +27,7 @@ def kauffman_polynomial(link: SGCode) -> Poly:
     if len(link.components) == 0:
         return 0
 
-    disconnected_components = [*link.unlinked_components().keys()]
+    disconnected_components = link.unlinked_components()
 
     assert len(disconnected_components) > 0
 
