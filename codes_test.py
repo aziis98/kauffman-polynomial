@@ -174,6 +174,22 @@ def test_split_components_1():
     # assert seq == [15, 3]
 
 
+def test_minimal_rotation():
+    sg = SGCode.from_tuples([
+        [(+1, -1), (+6, +1), (+5, +1), (-3, +1)],
+        [(+4, -1), (-1, -1), (+2, +1), (-5, +1)],
+        [(-6, +1), (-4, -1), (+3, +1), (-2, +1)]
+    ])
+
+    sg_expected = SGCode.from_tuples([
+        [(+1, -1), (+6, +1), (+5, +1), (-3, +1)],
+        [(+2, +1), (-5, +1), (+4, -1), (-1, -1)],
+        [(+3, +1), (-2, +1), (-6, +1), (-4, -1)]
+    ])
+
+    assert sg.to_minimal() == sg_expected
+
+
 def test_overlies_decomposition_1():
     sg = SGCode.from_tuples([
         [(+1, -1), (+6, +1), (+5, +1), (-3, +1)],

@@ -95,7 +95,7 @@ class SGCodeCrossing:
     def __lt__(self, other: SGCodeCrossing):
         # return self.id < other.id
         # return (-self.over_under, self.id) < (-other.over_under, other.id)
-        return (self.id, -self.handedness) < (other.id, -other.handedness)
+        return (-self.over_under, self.id) < (-other.over_under, other.id)
 
 
 @dataclass(frozen=True)
@@ -275,9 +275,9 @@ class SGCode:
             ]
 
         # check result is a partition of 0...len(self.components)
-        assert sum(len(component)
-                   for component in result) == len(self.components)
-        # assert len(result) < 3
+        assert sum(
+            len(component) for component in result
+        ) == len(self.components)
 
         depth_print(f"ℹ️  {result}")
         return result

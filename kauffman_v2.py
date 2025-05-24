@@ -9,6 +9,9 @@ a, z = symbols("a z")
 d = (a + 1 / a) / z - 1
 
 
+optimizations = {'to_minimal', 'relabel', 'expand'}
+
+
 _fn_calls_count = 0
 
 
@@ -21,14 +24,15 @@ def polynomial_wrapper(func):
 
         _fn_calls_count += 1
 
-        # depth_print("ℹ️  wrapping before...")
-        # K8_18
-        # simple: 1004
-        # cache: 936
-        # cache, relabel: 814
-        # cache, relabel, to_minimal: 999 (???)
-        # result = func(link.to_minimal())
-        result = func(link.relabel()).expand()
+        if 'to_minimal' in optimizations:
+            link = link.to_minimal()
+        if 'relabel' in optimizations:
+            link = link.relabel()
+
+        result = func(link)
+
+        if 'expand' in optimizations:
+            result = result.expand()
 
         if get_depth() == 0:
             print(f"Call Count: {_fn_calls_count}")
@@ -60,7 +64,6 @@ def kauffman_polynomial(link: SGCode) -> Poly:
         if unknot_index == False or unknot_index_rev == False:
             depth_print("ℹ️  standard unknot form")
             return a ** link.writhe()
-
         else:
             depth_print(f"ℹ️  applying skein")
             link_switched = link.switch_crossing(unknot_index)

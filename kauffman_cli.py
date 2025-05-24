@@ -2,7 +2,11 @@ import time
 import database_knotinfo
 import utils
 from codes import SGCode, PDCode
+
+import kauffman_v2
 from kauffman_v2 import f_polynomial, kauffman_polynomial
+
+
 from sympy import parse_expr, symbols, init_printing
 from utils import parse_nested_list
 
@@ -72,13 +76,14 @@ def kauffman_cli():
 
     args = parser.parse_args()
 
+    kauffman_v2.optimizations = {'to_minimal', 'relabel', 'expand'}
     utils.global_debug = args.debug
 
     poly_fn, poly_label = AVAILABLE_POLYNOMIALS[args.polynomial]
 
     pd: PDCode | None = None
     sg: SGCode
-    knot_data = None
+    knot_entry = None
 
     if args.pd is not None:
         sg = PDCode.from_tuples(
@@ -89,21 +94,21 @@ def kauffman_cli():
         load_diagrams()
         print("Done.")
 
-        knot_data = knotinfo_by_name(args.knot_name)
+        knot_entry = knotinfo_by_name(args.knot_name)
 
-        if knot_data is None:
+        if knot_entry is None:
             print(f"Knot '{args.knot_name}' not found.")
             return
 
         knot_code: list[list[int]]
 
-        if "pd_notation" in knot_data:
+        if "pd_notation" in knot_entry:
             knot_code = parse_nested_list(
-                knot_data["pd_notation"], paren_spec="[[]]"
+                knot_entry["pd_notation"], paren_spec="[[]]"
             )
-        elif "pd_notation_vector" in knot_data:
+        elif "pd_notation_vector" in knot_entry:
             knot_code = parse_nested_list(
-                knot_data["pd_notation_vector"], paren_spec="{{}}"
+                knot_entry["pd_notation_vector"], paren_spec="{{}}"
             )
         else:
             raise ValueError(
@@ -128,8 +133,8 @@ def kauffman_cli():
 
     print(f"Polynomial (actual): {p_actual}")
 
-    if poly_label and knot_data:
-        p_expected_raw = knot_data[poly_label]
+    if poly_label and knot_entry and knot_entry[poly_label]:
+        p_expected_raw = knot_entry[poly_label]
         p_expected = parse_expr(p_expected_raw.replace("^", "**")).expand()
         matches = p_actual == p_expected
 
