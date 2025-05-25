@@ -194,8 +194,9 @@ through:
     type
 -   **Test suite**: Many tests covering various knot/link cases even some not in
     KnotInfo
--   **Cross-validation**: Multiple polynomial implementations tested against
-    each other
+-   **(WIP) Cross-validation**: Multiple polynomial implementations tested
+    against each other (both the HOMFLY and the Kauffman polynomials specialize
+    to the Jones polynomial for the same knot/link)
 
 ## Mathematical Background
 
