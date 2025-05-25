@@ -23,8 +23,8 @@ init_printing()
 
 
 AVAILABLE_POLYNOMIALS = {
-    'P': (homfly_polynomial, "homfly_polynomial"),
-    'F': (f_polynomial, "kauffman_polynomial"),
+    'homfly': (homfly_polynomial, "homfly_polynomial"),
+    'kauffman': (f_polynomial, "kauffman_polynomial"),
 }
 
 
@@ -165,8 +165,8 @@ if __name__ == "__main__":
     parser.add_argument(
         '--polynomial',
         choices=list(AVAILABLE_POLYNOMIALS.keys()),
-        default="F",
-        help=f"Polynomial type: {', '.join(AVAILABLE_POLYNOMIALS.keys())}, default is 'F' (Kauffman polynomial)",
+        default="kauffman",
+        help=f"Polynomial type: {', '.join(AVAILABLE_POLYNOMIALS.keys())}, the default is the Kauffman F polynomial",
     )
     parser.add_argument(
         '--knots',

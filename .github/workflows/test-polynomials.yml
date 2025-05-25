@@ -17,12 +17,12 @@ jobs:
     strategy:
       matrix:
         test-case:
-          - name: "HOMFLY Polynomial - Knots"
-            command: "python check_knotinfo.py --polynomial P --knots -c 50"
-          - name: "Kauffman Polynomial - Knots"
-            command: "python check_knotinfo.py --polynomial F --knots -c 50"
-          - name: "Kauffman Polynomial - Links"
-            command: "python check_knotinfo.py --polynomial F --links -c 50"
+          - name: "HOMFLY Polynomial (for knots)"
+            command: "python check_knotinfo.py --polynomial homfly --knots -c 50"
+          - name: "Kauffman Polynomial (for knots)"
+            command: "python check_knotinfo.py --polynomial kauffman --knots -c 50"
+          - name: "Kauffman Polynomial (for links)"
+            command: "python check_knotinfo.py --polynomial kauffman --links -c 50"
       fail-fast: false
     
     name: ${{ matrix.test-case.name }}
