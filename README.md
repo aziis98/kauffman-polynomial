@@ -203,7 +203,7 @@ through:
 
 The Kauffman polynomial $`L(a, z)`$ is defined through skein relations:
 
--   $`L(\circ) = 1`$
+-   $`L(O) = 1`$
 
 -   $`L(W^+) = a L(W)`$, $`L(W^-) = a^{-1} L(W)`$
 
