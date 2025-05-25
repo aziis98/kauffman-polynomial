@@ -1,36 +1,22 @@
 import utils
 
-from functools import cache, wraps
-from codes import SGCode, HANDED_LEFT, HANDED_RIGHT
+from functools import cache
+from codes import SGCode, HANDED_LEFT
 from sympy import symbols, Poly
-from utils import log_input_output, depth_print, get_depth
+from utils import log_input_output, depth_print
+from polynomial_commons import polynomial_wrapper
 
 
 v, z = symbols("v z")
 d = (v ** (-1) - v) / z
 
 
-def wrap_before(func):
-    @wraps(func)
-    def wrapper(link: SGCode):
-        pb = utils.progress_bar.get()
-        if get_depth() == 0:
-            pb.reset()
-
-        pb.update(1)
-
-        result = func(link).expand()
-
-        return result
-
-    return wrapper
-
-
 # KnotInfo HOMFLY convention:
 # - P(O) = 1
 # - P(L_+) / v - P(L_-) * v = P(L_0) * z
 
-@wrap_before
+
+@polynomial_wrapper()
 @log_input_output
 @cache
 def homfly_polynomial(link: SGCode) -> Poly:

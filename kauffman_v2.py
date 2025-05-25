@@ -1,49 +1,15 @@
-import utils
-
-from functools import cache, wraps
+from functools import cache
 from codes import SGCode
 from sympy import symbols, Poly
-from utils import log_input_output, depth_print, get_depth
+from utils import log_input_output, depth_print
+from polynomial_commons import polynomial_wrapper
 
 
 a, z = symbols("a z")
 d = (a + 1 / a) / z - 1
 
 
-# _fn_calls_count = 0
-
-
-def polynomial_wrapper(func):
-    @wraps(func)
-    def wrapper(link: SGCode):
-        # global _fn_calls_count
-        pb = utils.progress_bar.get()
-
-        if get_depth() == 0:
-            # _fn_calls_count = 0
-            pb.reset()
-
-        # _fn_calls_count += 1
-        pb.update(1)
-
-        # First we convert to minimal rotated form and only then we relabel,
-        # this ensures a consistent indexing for the cache.
-        link = link.to_minimal()
-        link = link.relabel()
-
-        result = func(link)
-
-        result = result.expand()
-
-        # if get_depth() == 0:
-        #     utils.progress_bar.get().close()
-
-        return result
-
-    return wrapper
-
-
-@polynomial_wrapper
+@polynomial_wrapper(optimizations={'expand', 'relabel', 'to_minimal'})
 @log_input_output
 @cache
 def kauffman_polynomial(link: SGCode) -> Poly:
