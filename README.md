@@ -21,8 +21,8 @@ defined using skein relations and can be computed from a knot diagram given its
 -   **KnotInfo Integration**: Validation against the KnotInfo database for
     accuracy testing
 
--   **Comprehensive Testing**: Extensive test suite covering many knots up to 8
-    crossings and links
+-   **Comprehensive Testing**: Test suite covering many knot/link cases,
+    including some not present in KnotInfo
 
 -   **Command Line Interface**: Easy-to-use CLI for computing polynomials
 
@@ -192,8 +192,10 @@ through:
 
 -   **GitHub Actions**: Automated testing of 50 knots/links for each polynomial
     type
+
 -   **Test suite**: Many tests covering various knot/link cases even some not in
     KnotInfo
+
 -   **(WIP) Cross-validation**: Multiple polynomial implementations tested
     against each other (both the HOMFLY and the Kauffman polynomials specialize
     to the Jones polynomial for the same knot/link)
