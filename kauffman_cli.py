@@ -238,12 +238,10 @@ Examples:
     crossing_count = sg.crossings_count()
     estimated_calls = 2.16 ** crossing_count
 
-    print_section("Computation Estimate")
-    print(
-        f"  Estimated complexity: {Fore.YELLOW}{utils.to_human_readable_number(estimated_calls)}{Style.RESET_ALL} calls"
-    )
-
     print_section("Computing Polynomial", f"Running {poly_name}...")
+    print(
+        f"  Estimated steps: {Fore.YELLOW}{utils.to_human_readable_number(estimated_calls)}{Style.RESET_ALL} calls"
+    )
 
     # Setup progress bar with better description
     if not args.debug:
@@ -286,8 +284,8 @@ Examples:
     print(f"    {Fore.CYAN}{formatted_poly}{Style.RESET_ALL}")
 
     # Verification section
+    print_section("Verification")
     if poly_label and knot_entry and knot_entry.get(poly_label):
-        print_section("Verification")
         try:
             p_expected_raw = knot_entry[poly_label]
             p_expected = parse_expr(p_expected_raw.replace("^", "**")).expand()
@@ -310,11 +308,9 @@ Examples:
         except Exception as e:
             print_error(f"Verification failed: {e}")
     else:
-        if poly_label:
-            print()
-            print(
-                f"  {Style.BRIGHT}No reference polynomial available for verification ({poly_label}){Style.RESET_ALL}"
-            )
+        print(
+            f"  {Style.BRIGHT}No reference polynomial available for verification{Style.RESET_ALL}"
+        )
 
     print_header("Computation Complete")
 
