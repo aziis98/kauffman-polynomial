@@ -193,17 +193,36 @@ through:
 
 -   **GitHub Actions**: Automated testing of 50 knots/links for each polynomial
     type
--   **Comprehensive test suite**: Over 100 test cases covering various knot
-    types
+-   **Test suite**: Many tests covering various knot/link cases even some not in
+    KnotInfo
 -   **Cross-validation**: Multiple polynomial implementations tested against
     each other
 
 ## Mathematical Background
 
-The Kauffman polynomial is defined through skein relations:
+### Kauffman Polynomial
 
--   Normalization: F(unknot) = 1
--   Skein relation: Based on local crossing changes and loop removal
--   Variables: Uses variables `a` and `z` where `d = (a + a⁻¹)/z - 1`
+The Kauffman polynomial $`L(a, z)`$ is defined through skein relations:
 
-The HOMFLY polynomial uses similar skein relations with variables `v` and `z`.
+-   $`L(\text{unknot}) = 1`$
+
+-   $`L(W^+) = a L(W)`$, $`L(W^-) = a^{-1} L(W)`$
+
+-   $`L(K) + L(K_-) = z (L(K_h) + L(K_v))`$
+
+Where:
+
+-   $`W^\pm, W`$ are strand with a positive or negative curl
+
+-   $`K`$ is the initial knot
+
+-   $`K_-`$ is the knot with the crossing switched
+
+-   $`K_h`$ is the horizontal splice of the crossing
+
+-   $`K_v`$ is the vertical splice of the crossing
+
+### HOMFLY Polynomial
+
+The HOMFLY polynomial uses similar skein relations with variables $`v`$ and
+$`z`$...
