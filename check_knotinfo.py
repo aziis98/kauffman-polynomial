@@ -68,13 +68,15 @@ def print_result(
     # Capitalize the first letter of poly_name for display
     display_poly_name = poly_name.replace("_", " ").capitalize()
 
+    writhe = sg.writhe()
+
     if matches:
         print(
-            f"{str(i + 1).rjust(count_size)}/{total} > {name} [{bench_time:.2f}s] => Correct"
+            f"{str(i + 1).rjust(count_size)}/{total} > {name} [w={writhe}] [{bench_time:.2f}s] => Correct"
         )
     else:
         print(
-            f"{str(i + 1).rjust(count_size)}/{total} > {name} [{bench_time:.2f}s] => Wrong"
+            f"{str(i + 1).rjust(count_size)}/{total} > {name} [w={writhe}] [{bench_time:.2f}s] => Wrong"
         )
 
         prefix = " " * len(
