@@ -34,7 +34,7 @@ defined using skein relations and can be computed from a knot diagram given its
 ### Kauffman Polynomial (`F`)
 
 -   **`f_polynomial`**: The normalized Kauffman polynomial
-    $`F(a,z) = a^{(-w(L))} * L(a,z)`$
+    $`F_K(a,z) = a^{-w(K)} * L_K(a,z)`$
 
 -   **`kauffman_polynomial`**: The bracket polynomial $L(a,z)$ using skein
     relations
@@ -224,7 +224,7 @@ Where:
 Then the normalized Kauffman polynomial is defined as:
 
 ```math
-F_K(a, z) = a^{(-w(K))} * L_K(a, z)
+F_K(a, z) = a^{-w(K)} * L_K(a, z)
 ```
 
 Where $`w(K)`$ is the writhe of the knot/link diagram.
