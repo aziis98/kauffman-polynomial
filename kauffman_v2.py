@@ -1,41 +1,43 @@
 from codes import SGCode
 from sympy import symbols, Poly
 
+import utils
 from utils import log_input_output, depth_print, get_depth
 
 from functools import cache, wraps
+
 
 a, z = symbols("a z")
 d = (a + 1 / a) / z - 1
 
 
-optimizations = {'to_minimal', 'relabel', 'expand'}
-
-
-_fn_calls_count = 0
+# _fn_calls_count = 0
 
 
 def polynomial_wrapper(func):
     @wraps(func)
     def wrapper(link: SGCode):
-        global _fn_calls_count
+        # global _fn_calls_count
+        pb = utils.progress_bar.get()
+
         if get_depth() == 0:
-            _fn_calls_count = 0
+            # _fn_calls_count = 0
+            pb.reset()
 
-        _fn_calls_count += 1
+        # _fn_calls_count += 1
+        pb.update(1)
 
-        if 'to_minimal' in optimizations:
-            link = link.to_minimal()
-        if 'relabel' in optimizations:
-            link = link.relabel()
+        # First we convert to minimal rotated form and only then we relabel,
+        # this ensures a consistent indexing for the cache.
+        link = link.to_minimal()
+        link = link.relabel()
 
         result = func(link)
 
-        if 'expand' in optimizations:
-            result = result.expand()
+        result = result.expand()
 
-        if get_depth() == 0:
-            print(f"Call Count: {_fn_calls_count}")
+        # if get_depth() == 0:
+        #     utils.progress_bar.get().close()
 
         return result
 

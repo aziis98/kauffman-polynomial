@@ -1,14 +1,18 @@
-import functools
-from sympy import latex
-
-
 import re
-
+import functools
 
 from typing import Literal
+from contextvars import ContextVar
+from tqdm import tqdm
+
 
 _global_depth = 0
 global_debug = True
+
+
+progress_bar: ContextVar[tqdm] = ContextVar(
+    'progress_bar', default=tqdm(initial=0, total=0, disable=True, desc="Progress")
+)
 
 
 def parse_nested_list(
@@ -166,3 +170,19 @@ def track_arg_stack(func):
         return result
 
     return wrapper
+
+
+def to_human_readable_number(n: float | int) -> str:
+    """
+    Convert a large number to a human-readable format with appropriate suffixes (K, M, B, T).
+    """
+    if n < 1000:
+        return str(int(n))
+    elif n < 1_000_000:
+        return f"{n/1000:.0f}K" if n >= 10_000 else f"{n/1000:.1f}K"
+    elif n < 1_000_000_000:
+        return f"{n/1_000_000:.0f}M" if n >= 10_000_000 else f"{n/1_000_000:.1f}M"
+    elif n < 1_000_000_000_000:
+        return f"{n/1_000_000_000:.0f}B" if n >= 10_000_000_000 else f"{n/1_000_000_000:.1f}B"
+    else:
+        return f"{n/1_000_000_000_000:.0f}T" if n >= 10_000_000_000_000 else f"{n/1_000_000_000_000:.1f}T"

@@ -1,24 +1,25 @@
 import time
-import database_knotinfo
-import utils
+from typing import Callable
 from codes import SGCode, PDCode
 
 import kauffman_v2
-from kauffman_v2 import f_polynomial, kauffman_polynomial
+import homfly
 
 
-from sympy import parse_expr, symbols, init_printing
-from utils import parse_nested_list
+from sympy import parse_expr, Poly
+
+import utils
+import tqdm
+
+import database_knotinfo
 
 
-init_printing(use_unicode=True)
-a, z = symbols("a z")
-
-
-AVAILABLE_POLYNOMIALS = {
-    "F": (f_polynomial, "kauffman_polynomial"),
-    "L": (kauffman_polynomial, None),
+AVAILABLE_POLYNOMIALS: dict[str, tuple[Callable[[SGCode], Poly], str | None]] = {
+    "P": (homfly.homfly_polynomial, "homfly_polynomial"),
+    "F": (kauffman_v2.f_polynomial, "kauffman_polynomial"),
+    "L": (kauffman_v2.kauffman_polynomial, None),
 }
+
 
 all_diagrams = []
 
@@ -41,7 +42,27 @@ def knotinfo_by_name(name):
     )
 
 
+def knotinfo_entry_pd_code(knot_entry) -> PDCode:
+    """
+    Get the PD code from a knot entry.
+    """
+    if "pd_notation" in knot_entry:
+        return PDCode.from_tuples(
+            utils.parse_nested_list(
+                knot_entry["pd_notation"], paren_spec="[[]]"
+            )
+        )
+    elif "pd_notation_vector" in knot_entry:
+        return PDCode.from_tuples(
+            utils.parse_nested_list(
+                knot_entry["pd_notation_vector"], paren_spec="{{}}"
+            )
+        )
+    else:
+        raise ValueError("No valid PD notation found in knot data.")
+
 # kauffman_cli --polynomial F 8_18
+
 
 def kauffman_cli():
     """
@@ -65,7 +86,7 @@ def kauffman_cli():
         '-p', '--polynomial',
         choices=list(AVAILABLE_POLYNOMIALS.keys()),
         default="F",
-        help=f"Polynomial type: {', '.join(AVAILABLE_POLYNOMIALS.keys())}",
+        help=f"Polynomial to compute: {', '.join(AVAILABLE_POLYNOMIALS.keys())}. Default is 'F' (Kauffman F polynomial).",
     )
     parser.add_argument(
         "knot_name",
@@ -76,7 +97,6 @@ def kauffman_cli():
 
     args = parser.parse_args()
 
-    kauffman_v2.optimizations = {'to_minimal', 'relabel', 'expand'}
     utils.global_debug = args.debug
 
     poly_fn, poly_label = AVAILABLE_POLYNOMIALS[args.polynomial]
@@ -86,9 +106,10 @@ def kauffman_cli():
     knot_entry = None
 
     if args.pd is not None:
-        sg = PDCode.from_tuples(
-            parse_nested_list(args.pd, paren_spec="[[]]")
-        ).to_signed_gauss_code()
+        pd = PDCode.from_tuples(
+            utils.parse_nested_list(args.pd, paren_spec="[[]]")
+        )
+        sg = pd.to_signed_gauss_code()
     else:
         print("Loading KnotInfo...")
         load_diagrams()
@@ -100,34 +121,33 @@ def kauffman_cli():
             print(f"Knot '{args.knot_name}' not found.")
             return
 
-        knot_code: list[list[int]]
-
-        if "pd_notation" in knot_entry:
-            knot_code = parse_nested_list(
-                knot_entry["pd_notation"], paren_spec="[[]]"
-            )
-        elif "pd_notation_vector" in knot_entry:
-            knot_code = parse_nested_list(
-                knot_entry["pd_notation_vector"], paren_spec="{{}}"
-            )
-        else:
-            raise ValueError(
-                "No valid PD notation found in knot data."
-            )
-
-        pd = PDCode.from_tuples(knot_code)
+        pd = knotinfo_entry_pd_code(knot_entry)
         sg = pd.to_signed_gauss_code()
 
     print(f"Processing knot: {args.knot_name}")
 
     if pd:
         print(f"PD Code: {pd!s}")
+
     print(f"Signed Gauss Code: {sg!r}")
 
-    # Initialize pretty printing
+    # this is a random heuristic interpolated from the call count of 13n5110
+    print(
+        f"Starting computation, estimated call count: {utils.to_human_readable_number(2.16 ** sg.crossings_count())}..."
+    )
+
+    if not args.debug:
+        utils.progress_bar.set(tqdm.tqdm())
+
+    # Run the polynomial function and measure time
     start_time = time.time()
     p_actual = poly_fn(sg).expand()
     end_time = time.time()
+
+    if not args.debug:
+        utils.progress_bar.get().close()
+        print(f"Call Count: {utils.progress_bar.get().n}")
+
     elapsed_time = end_time - start_time
     print(f"Elapsed time: {elapsed_time:.2f} seconds")
 
@@ -147,14 +167,3 @@ def kauffman_cli():
 
 if __name__ == "__main__":
     kauffman_cli()
-
-
-# [[8,1,9,2],[15,3,16,2],[18,5,19,6],[20,7,1,8],[4,9,5,10],[13,11,14,10],[17,13,18,12],[3,15,4,14],[11,17,12,16],[6,19,7,20]]
-
-
-# [[12,2,13,1],[15,2,16,3],[18,5,19,6],[20,7,1,8],[13,9,14,8],[3,11,4,10],[16,12,17,11],[9,15,10,14],[4,17,5,18],[6,19,7,20]]
-
-# [[8,1,9,2],[14,4,15,3],[18,5,19,6],[20,7,1,8],[2,9,3,10],[15,11,16,10],[17,13,18,12],[4,14,5,13],[11,17,12,16],[6,19,7,20]]
-
-
-# [[(-1, +1), (+10, +1), (-2, +1), (+1, +1), (-3, +1), (+9, +1), (-10, +1), (+2, +1), (+5, -1), (-7, -1), (+6, -1), (-8, -1), (-9, +1), (+3, +1), (+4, -1), (-5, -1), (+7, -1), (-6, -1), (+8, -1), (-4, -1)]]

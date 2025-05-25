@@ -158,6 +158,16 @@ class SGCode:
             for c in component
         ) // 2
 
+    def crossings_count(self) -> int:
+        """
+        Count the number of crossings in the signed Gauss code.
+        :return: Number of crossings
+        """
+        return sum(
+            len(component)
+            for component in self.components
+        ) // 2
+
     def reverse(self, ids: Literal['*'] | list[int] = '*'):
         """
         Reverse the signed Gauss code.
