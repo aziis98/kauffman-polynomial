@@ -149,18 +149,18 @@ uv run pytest kauffman_v2_knotinfo_test.py
 ## Project Structure
 
 ```
-├── check_knotinfo.py          # Validation script against KnotInfo database
-├── codes.py                   # PD and SG code implementations
-├── graphs.py                  # Graph algorithms for topology analysis
-├── homfly.py                  # HOMFLY polynomial implementation
-├── kauffman_v2.py            # Main Kauffman polynomial implementation
-├── kauffman_closed.py        # Alternative Kauffman implementation
-├── kauffman_cli.py           # Command line interface
-├── utils.py                  # Utility functions and parsing
-├── equation_dsl/             # Domain-specific language for equations
-│   ├── equation_dsl.py       # Expression evaluation framework
-│   └── skein_dsl_test.py     # Skein relation validation tests
-└── *_test.py                 # Comprehensive test suites
+├── check_knotinfo.py       # Validation script against KnotInfo database
+├── codes.py                # PD and SG code implementations
+├── graphs.py               # Graph algorithms for topology analysis
+├── homfly.py               # HOMFLY polynomial implementation
+├── kauffman_v2.py          # Main Kauffman polynomial implementation
+├── kauffman_closed.py      # Alternative Kauffman implementation
+├── kauffman_cli.py         # Command line interface
+├── utils.py                # Utility functions and parsing
+├── equation_dsl/           # Domain-specific language for equations
+│   ├── equation_dsl.py     # Expression evaluation framework
+│   └── skein_dsl_test.py   # Skein relation validation tests
+└── *_test.py               # Comprehensive test suites
 ```
 
 ## Dependencies
@@ -203,7 +203,7 @@ through:
 
 The Kauffman polynomial $`L(a, z)`$ is defined through skein relations:
 
--   $`L(\text{unknot}) = 1`$
+-   $`L(\circ) = 1`$
 
 -   $`L(W^+) = a L(W)`$, $`L(W^-) = a^{-1} L(W)`$
 
@@ -211,15 +211,16 @@ The Kauffman polynomial $`L(a, z)`$ is defined through skein relations:
 
 Where:
 
--   $`W^\pm, W`$ are strand with a positive or negative curl
+-   $`W^\pm, W`$ are the same know with a strands with a positive, negative or
+    zero curl.
 
--   $`K`$ is the initial knot
+-   $`K`$ is the initial knot.
 
--   $`K_-`$ is the knot with the crossing switched
+-   $`K_-`$ is the knot with the crossing switched.
 
--   $`K_h`$ is the horizontal splice of the crossing
+-   $`K_h`$ is the horizontal splice of the crossing.
 
--   $`K_v`$ is the vertical splice of the crossing
+-   $`K_v`$ is the vertical splice of the crossing.
 
 Then the normalized Kauffman polynomial is defined as:
 
