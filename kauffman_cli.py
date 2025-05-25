@@ -100,16 +100,20 @@ def print_info(text: str):
 
 def format_polynomial(poly: Poly) -> str:
     """Format polynomial for better readability."""
-    poly_str = str(poly)
 
-    # TODO: Doesn't work well with Laurent polynomials
-    # poly_str = str(Poly(poly, z).as_expr())
-    # Add some basic formatting
-    # if len(poly_str) > 80:
-    #     # split at " + z**" or " - z**"
-    #     poly_str = re.sub(r'(\s*[\+\-]\s*z\*\*[0-9]+)', r'\n   \1', poly_str)
+    # FIX: sympy doesn't handle laurent polynomials well, so this hack with fallback for now
+    try:
+        poly_str = str(Poly(poly, z).as_expr())
+        # Add some basic formatting
+        if len(poly_str) > 80:
+            # split at " + z**" or " - z**"
+            poly_str = re.sub(
+                r'(\s*[\+\-]\s*z\*\*[0-9]+)', r'\n   \1', poly_str
+            )
 
-    return poly_str
+        return poly_str
+    except Exception as e:
+        return f"{poly!s}"
 
 
 def kauffman_cli():
@@ -284,7 +288,7 @@ Examples:
         f"  {Style.BRIGHT}Polynomial ({args.polynomial}):{Style.RESET_ALL}"
     )
     formatted_poly = format_polynomial(p_actual)
-    print(f"  {Fore.CYAN}{formatted_poly}{Style.RESET_ALL}")
+    print(f"    {Fore.CYAN}{formatted_poly}{Style.RESET_ALL}")
 
     # Verification section
     print_section("Verification")
@@ -298,7 +302,7 @@ Examples:
                 f"  {Style.BRIGHT}Expected Polynomial ({poly_label}):{Style.RESET_ALL}"
             )
             formatted_expected_poly = format_polynomial(p_expected)
-            print(f"  {Fore.CYAN}{formatted_expected_poly}{Style.RESET_ALL}")
+            print(f"    {Fore.CYAN}{formatted_expected_poly}{Style.RESET_ALL}")
 
             print()
             if matches:
