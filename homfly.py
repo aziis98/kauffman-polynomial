@@ -1,43 +1,43 @@
-from codes import SGCode, HANDED_LEFT, HANDED_RIGHT
-from sympy import symbols, Poly, poly
+import utils
 
-from utils import log_input_output, depth_print, get_depth
 from functools import cache, wraps
+from codes import SGCode, HANDED_LEFT, HANDED_RIGHT
+from sympy import symbols, Poly
+from utils import log_input_output, depth_print, get_depth
 
 
 v, z = symbols("v z")
 d = (v ** (-1) - v) / z
 
 
-_fn_calls_count = 0
-
-
 def wrap_before(func):
     @wraps(func)
     def wrapper(link: SGCode):
-        global _fn_calls_count
+        pb = utils.progress_bar.get()
         if get_depth() == 0:
-            _fn_calls_count = 0
+            pb.reset()
 
-        _fn_calls_count += 1
+        pb.update(1)
 
         result = func(link).expand()
-
-        if get_depth() == 0:
-            print(f"Call Count: {_fn_calls_count}")
 
         return result
 
     return wrapper
 
 
-# KnotInfo
-# P(O) = 1,   P(L_+) / v - P(L_-) * v = P(L_0) * z
+# KnotInfo HOMFLY convention:
+# - P(O) = 1
+# - P(L_+) / v - P(L_-) * v = P(L_0) * z
 
 @wrap_before
 @log_input_output
 @cache
 def homfly_polynomial(link: SGCode) -> Poly:
+    """
+    Computes the HOMFLY polynomial P(v, z) for a given knot.
+    """
+
     depth_print("ℹ️  not cached...")
 
     assert len(link.components) > 0

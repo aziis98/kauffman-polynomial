@@ -1,10 +1,9 @@
-from codes import SGCode
-from sympy import symbols, Poly
-
 import utils
-from utils import log_input_output, depth_print, get_depth
 
 from functools import cache, wraps
+from codes import SGCode
+from sympy import symbols, Poly
+from utils import log_input_output, depth_print, get_depth
 
 
 a, z = symbols("a z")
