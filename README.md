@@ -79,33 +79,33 @@ defined using skein relations and can be computed from a knot diagram given its
 
 ```bash
 # Calculate Kauffman polynomial for a specific knot
-uv run python kauffman_cli.py --polynomial F 8_18
+uv run python cli.py --polynomial F 8_18
 
 # Calculate HOMFLY polynomial
-uv run python kauffman_cli.py --polynomial P 10_125
+uv run python cli.py --polynomial P 10_125
 
 # Use custom PD notation
-uv run python kauffman_cli.py --pd "[[4, 2, 5, 1], [8, 6, 1, 5], [6, 3, 7, 4], [2, 7, 3, 8]]"
+uv run python cli.py --pd "[[4, 2, 5, 1], [8, 6, 1, 5], [6, 3, 7, 4], [2, 7, 3, 8]]"
 ```
 
 ### Validation Against KnotInfo Database
 
 ```bash
 # Test first 50 knots with Kauffman polynomial
-uv run python check_knotinfo.py --polynomial F --knots -c 50
+uv run python check_knotinfo.py --polynomial kauffman --knots -c 50
 
 # Test links with specified polynomial
-uv run python check_knotinfo.py --polynomial F --links -c 50
+uv run python check_knotinfo.py --polynomial kauffman --links -c 50
 
 # Test with HOMFLY polynomial
-uv run python check_knotinfo.py --polynomial P --knots -c 50
+uv run python check_knotinfo.py --polynomial homfly --knots -c 50
 ```
 
 ### Programmatic Usage
 
 ```python
 from codes import PDCode, SGCode
-from kauffman_v2 import f_polynomial, kauffman_polynomial
+from kauffman import f_polynomial, kauffman_polynomial
 from homfly import homfly_polynomial
 
 # Create a knot from PD code
@@ -151,24 +151,22 @@ uv run pytest kauffman_v2_knotinfo_test.py
 ```
 ├── check_knotinfo.py       # Validation script against KnotInfo database
 ├── codes.py                # PD and SG code implementations
-├── graphs.py               # Graph algorithms for topology analysis
 ├── homfly.py               # HOMFLY polynomial implementation
-├── kauffman_v2.py          # Main Kauffman polynomial implementation
-├── kauffman_closed.py      # Alternative Kauffman implementation
-├── kauffman_cli.py         # Command line interface
+├── kauffman.py             # Main Kauffman polynomial implementation
+├── cli.py                  # Command line interface
 ├── utils.py                # Utility functions and parsing
-├── equation_dsl/           # Domain-specific language for equations
-│   ├── equation_dsl.py     # Expression evaluation framework
-│   └── skein_dsl_test.py   # Skein relation validation tests
-└── *_test.py               # Comprehensive test suites
+└── *_test.py               # PyTest test suites
 ```
 
 ## Dependencies
 
 -   **sympy**: Symbolic mathematics for polynomial manipulation
+
 -   **database-knotinfo**: Access to the KnotInfo database for validation
+
 -   **pytest**: Testing framework
--   **tqdm**: Progress bars for long-running computations
+
+-   **tqdm**: For nice progress bars for long-running computations
 
 ## Development
 
