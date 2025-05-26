@@ -1,7 +1,7 @@
 [project]
-name = "kauffman-lib-1"
+name = "kauffman_polynomial"
 version = "0.1.0"
-description = "Add your description here"
+description = "A Python package for computing polynomials invariants of knots and links."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
