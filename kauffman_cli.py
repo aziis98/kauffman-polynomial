@@ -185,6 +185,7 @@ Examples:
     sg: SGCode
     knot_entry = None
     knot_name = args.knot_name or "Custom PD Code"
+    display_url = f"https://knotinfo.math.indiana.edu/diagram_display.php?{knot_name}"
 
     if args.pd is not None:
         print_section("Input", "Using provided PD code")
@@ -232,14 +233,25 @@ Examples:
             return
 
     print_section("Knot Analysis")
-    print(f"  Name: {Style.BRIGHT}{knot_name}{Style.RESET_ALL}")
+    print(
+        f"  Name: {Style.BRIGHT}{knot_name}{Style.RESET_ALL}"
+    )
+    print(
+        f"  Display Url: {Style.BRIGHT}{display_url}{Style.RESET_ALL}"
+    )
     if pd:
-        print(f"  PD Code: {pd!s}")
-    print(f"  Signed Gauss Code: {sg!r}")
+        print(
+            f"  PD Code: {pd!s}"
+        )
     print(
-        f"  Crossings: {Style.BRIGHT}{sg.crossings_count()}{Style.RESET_ALL}")
+        f"  Signed Gauss Code: {sg!r}"
+    )
     print(
-        f"  Writhe: {Style.BRIGHT}{sg.writhe()}{Style.RESET_ALL}")
+        f"  Crossings: {Style.BRIGHT}{sg.crossings_count()}{Style.RESET_ALL}"
+    )
+    print(
+        f"  Writhe: {Style.BRIGHT}{sg.writhe()}{Style.RESET_ALL}"
+    )
 
     # Improved complexity estimation
     crossing_count = sg.crossings_count()
