@@ -79,26 +79,55 @@ defined using skein relations and can be computed from a knot diagram given its
 
 ```bash
 # Calculate Kauffman polynomial for a specific knot
-uv run python cli.py --polynomial F 8_18
+uv run cli.py --polynomial F 8_18
 
 # Calculate HOMFLY polynomial
-uv run python cli.py --polynomial P 10_125
+uv run cli.py --polynomial P 10_125
 
 # Use custom PD notation
-uv run python cli.py --pd "[[4, 2, 5, 1], [8, 6, 1, 5], [6, 3, 7, 4], [2, 7, 3, 8]]"
+uv run cli.py --pd "[[4, 2, 5, 1], [8, 6, 1, 5], [6, 3, 7, 4], [2, 7, 3, 8]]"
 ```
+
+### Raw Polynomial Output (Machine Processing)
+
+For machine processing and scripting, use `raw.py` which outputs raw SymPy
+polynomial format without formatting:
+
+```bash
+# Calculate polynomials for multiple inputs (preserves command-line order)
+uv run raw.py -p F --knotinfo 3_1 --pd "[[1,3,2,4]]" --knotinfo 4_1
+
+# Mix different input types in any order
+uv run raw.py -p P --pd "[[4,2,5,1],[8,6,1,5],[6,3,7,4],[2,7,3,8]]" --sg "[[(+1,-1),(-2,-1)],[(-1,-1),(+2,-1)]]"
+
+# Use positional arguments for knot names
+uv run raw.py -p F 3_1 4_1 5_1
+
+```
+
+Options, each input option produces one line of raw polynomial output
+
+-   `--pd`: PD notation string
+
+-   `--sg`: Signed Gauss code string
+
+-   `--knotinfo`: KnotInfo knot/link name, or just use remaining positional
+    arguments.
+
+-   `-p`, `--polynomial`: Required. Polynomial type (P=HOMFLY, F=Kauffman F,
+    L=Kauffman L)
 
 ### Validation Against KnotInfo Database
 
 ```bash
 # Test first 50 knots with Kauffman polynomial
-uv run python check_knotinfo.py --polynomial kauffman --knots -c 50
+uv run check_knotinfo.py --polynomial kauffman --knots -c 50
 
 # Test links with specified polynomial
-uv run python check_knotinfo.py --polynomial kauffman --links -c 50
+uv run check_knotinfo.py --polynomial kauffman --links -c 50
 
 # Test with HOMFLY polynomial
-uv run python check_knotinfo.py --polynomial homfly --knots -c 50
+uv run check_knotinfo.py --polynomial homfly --knots -c 50
 ```
 
 ### Programmatic Usage
@@ -150,7 +179,8 @@ uv run pytest codes_test.py
 ├── codes.py                # PD and SG code implementations
 ├── homfly.py               # HOMFLY polynomial implementation
 ├── kauffman.py             # Main Kauffman polynomial implementation
-├── cli.py                  # Command line interface
+├── cli.py                  # Interactive command line interface
+├── raw.py                  # Raw polynomial output for machine processing
 ├── utils.py                # Utility functions and parsing
 └── *_test.py               # PyTest test suites
 ```
