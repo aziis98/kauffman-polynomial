@@ -88,6 +88,13 @@ def compute_polynomial_from_knotinfo(name: str, poly_fn: Callable[[SGCode], Poly
     return poly_fn(sg).expand()
 
 
+COMPUTATION_FUNCTIONS = {
+    'pd': compute_polynomial_from_pd,
+    'sg': compute_polynomial_from_sg,
+    'knotinfo': compute_polynomial_from_knotinfo
+}
+
+
 class SpecsAction(argparse.Action):
     """Custom action to preserve order of inputs."""
 
@@ -183,18 +190,9 @@ def main():
     # Process each input and output polynomial
     for input_type, input_value in inputs:
         try:
-            if input_type == 'pd':
-                poly = compute_polynomial_from_pd(input_value, poly_fn)
-            elif input_type == 'sg':
-                poly = compute_polynomial_from_sg(input_value, poly_fn)
-            elif input_type == 'knotinfo':
-                poly = compute_polynomial_from_knotinfo(input_value, poly_fn)
-            else:
-                raise ValueError(f"Unknown input type: {input_type}")
-
-            # Output raw polynomial
-            print(poly)
-
+            print(
+                COMPUTATION_FUNCTIONS[input_type](input_value, poly_fn)
+            )
         except Exception as e:
             print(
                 f"Error processing {input_type} '{input_value}': {e}", file=sys.stderr)
