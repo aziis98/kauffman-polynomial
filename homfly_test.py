@@ -1,5 +1,5 @@
 from codes import SGCode, PDCode
-from kauffman_v2 import kauffman_polynomial
+from kauffman import kauffman_polynomial
 from sympy import symbols
 
 from homfly import homfly_polynomial

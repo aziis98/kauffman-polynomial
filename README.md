@@ -136,14 +136,11 @@ fd -e py | entr -c uv run pytest
 
 ```bash
 # Test specific polynomial implementations
-uv run pytest kauffman_v2_test.py
+uv run pytest kauffman_test.py
 uv run pytest homfly_test.py
 
 # Test code representations
 uv run pytest codes_test.py
-
-# Test against KnotInfo database
-uv run pytest kauffman_v2_knotinfo_test.py
 ```
 
 ## Project Structure

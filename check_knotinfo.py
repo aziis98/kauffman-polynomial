@@ -1,7 +1,7 @@
 from codes import SGCode, PDCode
 
 from homfly import homfly_polynomial
-from kauffman_v2 import f_polynomial
+from kauffman import f_polynomial
 
 from sympy import Poly, parse_expr, symbols, init_printing
 
