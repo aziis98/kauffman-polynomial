@@ -30,7 +30,7 @@ wheels = [
 ]
 
 [[package]]
-name = "kauffman-lib-1"
+name = "kauffman-polynomial"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

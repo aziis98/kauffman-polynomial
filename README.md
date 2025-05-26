@@ -1,6 +1,7 @@
 # Kauffman Polynomial in Python
 
 [![Test first 50 polynomials](https://github.com/aziis98/kauffman-polynomial/actions/workflows/test-polynomials.yml/badge.svg)](https://github.com/aziis98/kauffman-polynomial/actions/workflows/test-polynomials.yml)
+[![PyTest](https://github.com/aziis98/kauffman-polynomial/actions/workflows/pytest.yml/badge.svg)](https://github.com/aziis98/kauffman-polynomial/actions/workflows/pytest.yml)
 
 This repository contains a Python implementation of the Kauffman polynomial, a
 knot invariant that is used to distinguish knots and links in knot theory. It is
