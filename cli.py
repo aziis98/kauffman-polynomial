@@ -17,10 +17,10 @@ from colorama import init, Fore, Back, Style
 init(autoreset=True)
 
 
-AVAILABLE_POLYNOMIALS: dict[str, tuple[Callable[[SGCode], Poly], str | None]] = {
-    "P": (homfly.homfly_polynomial, "homfly_polynomial"),
-    "F": (kauffman.f_polynomial, "kauffman_polynomial"),
-    "L": (kauffman.kauffman_polynomial, None),
+AVAILABLE_POLYNOMIALS: dict[str, tuple[str, Callable[[SGCode], Poly], str | None]] = {
+    "P": ("HOMFLY Polynomial", homfly.homfly_polynomial, "homfly_polynomial"),
+    "F": ("Kauffman F Polynomial", kauffman.f_polynomial, "kauffman_polynomial"),
+    "L": ("Kauffman L Polynomial", kauffman.kauffman_polynomial, None),
 }
 
 
@@ -112,7 +112,7 @@ def format_polynomial(poly: Poly) -> str:
             )
 
         return poly_str
-    except Exception as e:
+    except:
         return f"{poly!s}"
 
 
@@ -153,6 +153,11 @@ Examples:
         help="Disable colored output",
     )
     parser.add_argument(
+        '--symmetry-types',
+        action='store_true',
+        help="Include other symmetry types in the output: reverse, mirror, etc.",
+    )
+    parser.add_argument(
         "knot_name",
         nargs="?",
         default=None,
@@ -171,12 +176,7 @@ Examples:
 
     utils.global_debug = args.debug
 
-    poly_fn, poly_label = AVAILABLE_POLYNOMIALS[args.polynomial]
-    poly_name = {
-        "P": "HOMFLY Polynomial",
-        "F": "Kauffman F Polynomial",
-        "L": "Kauffman L Polynomial"
-    }.get(args.polynomial, f"{args.polynomial} Polynomial")
+    poly_name, poly_fn, poly_label = AVAILABLE_POLYNOMIALS[args.polynomial]
 
     print_header(f"Knot Polynomial Calculator")
     print_info(f"  Computing: {poly_name}")
@@ -262,8 +262,9 @@ Examples:
         f"  Estimated steps: {Fore.YELLOW}{utils.to_human_readable_number(estimated_calls)}{Style.RESET_ALL} calls"
     )
 
-    # Setup progress bar with better description
-    if not args.debug:
+    p_actual: dict[str, Poly] = {}
+
+    def compute_polynomial(sg, poly_fn) -> Poly:
         progress_desc = f"  Computing {args.polynomial} polynomial"
         progress_bar = tqdm.tqdm(
             desc=progress_desc,
@@ -271,64 +272,109 @@ Examples:
             dynamic_ncols=True,
             colour='green'
         )
+
+        # Run the polynomial function and measure time
         utils.progress_bar.set(progress_bar)
-
-    # Run the polynomial function and measure time
-    start_time = time.time()
-    p_actual = poly_fn(sg).expand()
-    end_time = time.time()
-
-    elapsed_time = end_time - start_time
-
-    if not args.debug:
+        start_time = time.time()
+        poly_result = poly_fn(sg).expand()
+        end_time = time.time()
+        elapsed_time = end_time - start_time
         utils.progress_bar.get().close()
+
         actual_calls = utils.progress_bar.get().n
         calls_per_second = actual_calls / elapsed_time if elapsed_time > 0 else 0
 
         print_success(f"Computation completed!")
         print(
-            f"  Actual calls: {Style.BRIGHT}{utils.to_human_readable_number(actual_calls)}{Style.RESET_ALL}")
+            f"  Actual calls: {Style.BRIGHT}{utils.to_human_readable_number(actual_calls)}{Style.RESET_ALL}"
+        )
         print(
-            f"  Rate: {Style.BRIGHT}{utils.to_human_readable_number(calls_per_second)}{Style.RESET_ALL} calls/sec")
+            f"  Rate: {Style.BRIGHT}{utils.to_human_readable_number(calls_per_second)}{Style.RESET_ALL} calls/sec"
+        )
+        print(
+            f"  Elapsed time: {Style.BRIGHT}{elapsed_time:.3f}{Style.RESET_ALL} seconds"
+        )
 
-    print_section("Performance")
-    print(
-        f"  Elapsed time: {Style.BRIGHT}{elapsed_time:.3f}{Style.RESET_ALL} seconds")
+        return poly_result
+
+    p_actual['normal'] = compute_polynomial(sg, poly_fn)
+
+    if args.symmetry_types:
+        print("\n  Computing mirror...")
+        mirror_sg = sg.mirror()
+        p_actual['mirror'] = (
+            compute_polynomial(
+                mirror_sg, poly_fn
+            )
+        )
+
+        print("\n  Computing reverse...")
+        reverse_sg = sg.reverse()
+        p_actual['reverse'] = (
+            compute_polynomial(
+                reverse_sg, poly_fn
+            )
+        )
+
+        print("\n  Computing mirror-reverse...")
+        mirror_reverse_sg = sg.mirror().reverse()
+        p_actual['mirror_reverse'] = (
+            compute_polynomial(
+                mirror_reverse_sg, poly_fn
+            )
+        )
 
     print_section("Results")
     print(
         f"  {Style.BRIGHT}Polynomial ({args.polynomial}):{Style.RESET_ALL}"
     )
-    formatted_poly = format_polynomial(p_actual)
+    formatted_poly = format_polynomial(p_actual['normal'])
     print(f"    {Fore.CYAN}{formatted_poly}{Style.RESET_ALL}")
 
-    # Verification section
-    print_section("Verification")
-    if poly_label and knot_entry and knot_entry.get(poly_label):
-        try:
-            p_expected_raw = knot_entry[poly_label]
-            p_expected = parse_expr(p_expected_raw.replace("^", "**")).expand()
-            matches = p_actual == p_expected
-
+    if args.symmetry_types:
+        if 'mirror' in p_actual:
             print(
-                f"  {Style.BRIGHT}Expected Polynomial ({poly_label}):{Style.RESET_ALL}"
+                f"  {Style.BRIGHT}Mirror Polynomial:{Style.RESET_ALL}"
             )
-            formatted_expected_poly = format_polynomial(p_expected)
-            print(f"    {Fore.CYAN}{formatted_expected_poly}{Style.RESET_ALL}")
+            formatted_mirror_poly = format_polynomial(p_actual['mirror'])
+            print(f"    {Fore.CYAN}{formatted_mirror_poly}{Style.RESET_ALL}")
 
-            print()
-            if matches:
-                print_success("Polynomials match!")
-            else:
-                print_error("Polynomials don't match!")
-                # print(f"  {Fore.YELLOW}This might indicate a computation error or database inconsistency{Style.RESET_ALL}")
-
-        except Exception as e:
-            print_error(f"Verification failed: {e}")
+        if 'reverse' in p_actual:
+            print(
+                f"  {Style.BRIGHT}Reverse Polynomial:{Style.RESET_ALL}"
+            )
+            formatted_reverse_poly = format_polynomial(p_actual['reverse'])
+            print(f"    {Fore.CYAN}{formatted_reverse_poly}{Style.RESET_ALL}")
     else:
-        print(
-            f"  {Style.BRIGHT}No reference polynomial available for verification{Style.RESET_ALL}"
-        )
+        # Verification section
+        print_section("Verification")
+        if poly_label and knot_entry and knot_entry.get(poly_label):
+            try:
+                p_expected_raw = knot_entry[poly_label]
+                p_expected = parse_expr(
+                    p_expected_raw.replace("^", "**")).expand()
+                matches = p_actual == p_expected
+
+                print(
+                    f"  {Style.BRIGHT}Expected Polynomial ({poly_label}):{Style.RESET_ALL}"
+                )
+                formatted_expected_poly = format_polynomial(p_expected)
+                print(
+                    f"    {Fore.CYAN}{formatted_expected_poly}{Style.RESET_ALL}")
+
+                print()
+                if matches:
+                    print_success("Polynomials match!")
+                else:
+                    print_error("Polynomials don't match!")
+                    # print(f"  {Fore.YELLOW}This might indicate a computation error or database inconsistency{Style.RESET_ALL}")
+
+            except Exception as e:
+                print_error(f"Verification failed: {e}")
+        else:
+            print(
+                f"  {Style.BRIGHT}No reference polynomial available for verification{Style.RESET_ALL}"
+            )
 
     print_header("Computation Complete")
 
