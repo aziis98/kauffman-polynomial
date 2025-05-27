@@ -1,8 +1,12 @@
 import functools
 import utils
+import sympy
+
+from equation_dsl import Expression
 from codes import SGCode
 from typing import Callable, Literal
-from sympy import Poly
+from sympy import solve, symbols, Poly, Eq
+from utils import depth_print
 
 
 OptimizationType = Literal['expand', 'relabel', 'to_minimal']
@@ -33,7 +37,7 @@ def polynomial_wrapper(optimizations: set[OptimizationType] = {'expand'}):
     """
     def decorator(func: Callable[[SGCode], Poly]) -> Callable[[SGCode], Poly]:
         @functools.wraps(func)
-        def wrapper(link: SGCode):
+        def wrapper(link: SGCode) -> Poly:
             pb = utils.progress_bar.get()
             pb.update(1)
 
@@ -48,7 +52,7 @@ def polynomial_wrapper(optimizations: set[OptimizationType] = {'expand'}):
 
             # Finally, for consistency, we expand the result
             if 'expand' in optimizations:
-                result = result.expand()
+                result = sympy.expand(result)
 
             return result
 

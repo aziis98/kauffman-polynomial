@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import operator
 from typing import Dict, Any, Callable
+from sympy import Symbol
 
 
 class Expression:
@@ -11,7 +12,7 @@ class Expression:
     def ensure(value: Any) -> Expression:
         if isinstance(value, Expression):
             return value
-        elif isinstance(value, (int, float, str, bool)):
+        elif isinstance(value, (int, float, str, bool, Symbol)):
             return Literal(value)
         else:
             raise TypeError(f"Unsupported type: {type(value)}")
@@ -63,7 +64,11 @@ class Expression:
     def __eq__(self, other) -> Expression:  # type: ignore
         return Equation(self, other)
 
-    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None) -> Any:
+    def evaluate(self,
+                 variables: Dict[str, Any],
+                 eval_action: Callable[[Any], Any] | None = None,
+                 equality=operator.eq
+                 ) -> Any:
         """Evaluate the expression given a dictionary of variable values"""
         raise NotImplementedError("Subclasses must implement evaluate method")
 
@@ -74,7 +79,7 @@ class Literal(Expression):
     def __init__(self, value: Any):
         self.value = value
 
-    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None) -> Any:
+    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None, equality=operator.eq) -> Any:
         if eval_action:
             return eval_action(self.value)
 
@@ -93,7 +98,7 @@ class Var(Expression):
     def __init__(self, name: str):
         self.name = name
 
-    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None) -> Any:
+    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None, equality=operator.eq) -> Any:
         if self.name not in variables:
             raise ValueError(f"Variable '{self.name}' is not defined")
 
@@ -116,8 +121,8 @@ class PropertyAccess(Expression):
         self.target = Expression.ensure(receiver)
         self.property_name = property_name
 
-    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None) -> Any:
-        obj_val = self.target.evaluate(variables, eval_action)
+    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None, equality=operator.eq) -> Any:
+        obj_val = self.target.evaluate(variables, eval_action, equality)
 
         if hasattr(obj_val, self.property_name):
             result = getattr(obj_val, self.property_name)
@@ -149,16 +154,16 @@ class FunctionCall(Expression):
         self.receiver = obj
         self.args = [Expression.ensure(arg) for arg in args]
 
-    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None) -> Any:
+    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None, equality=operator.eq) -> Any:
         # Check if the function is already evaluated in variables, this
         # supports a special syntax like "a.b(c, d)"
         func_name = f"{str(self.receiver)}({','.join(str(arg) for arg in self.args)})"
         if func_name in variables:
             return variables[func_name]
 
-        receiver_val = self.receiver.evaluate(variables, eval_action)
+        receiver_val = self.receiver.evaluate(variables, eval_action, equality)
         arg_vals: list[Any] = [
-            arg.evaluate(variables, eval_action)
+            arg.evaluate(variables, eval_action, equality)
             for arg in self.args
         ]
 
@@ -195,9 +200,9 @@ class BinaryOp(Expression):
         self.op = op
         self.right = Expression.ensure(right)
 
-    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None) -> Any:
-        left_val = self.left.evaluate(variables)
-        right_val = self.right.evaluate(variables)
+    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None, equality=operator.eq) -> Any:
+        left_val = self.left.evaluate(variables, eval_action, equality)
+        right_val = self.right.evaluate(variables, eval_action, equality)
 
         if self.op not in self.OPERATORS:
             raise ValueError(f"Unsupported operator: {self.op}")
@@ -228,8 +233,8 @@ class UnaryOp(Expression):
         self.op = op
         self.operand = Expression.ensure(operand)
 
-    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None) -> Any:
-        operand_val = self.operand.evaluate(variables, eval_action)
+    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None, equality=operator.eq) -> Any:
+        operand_val = self.operand.evaluate(variables, eval_action, equality)
 
         if self.op not in self.OPERATORS:
             raise ValueError(f"Unsupported unary operator: {self.op}")
@@ -254,13 +259,13 @@ class Equation(Expression):
         self.left = Expression.ensure(left)
         self.right = Expression.ensure(right)
 
-    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None) -> Any:
-        left_val = self.left.evaluate(variables, eval_action)
-        right_val = self.right.evaluate(variables, eval_action)
+    def evaluate(self, variables: Dict[str, Any], eval_action: Callable[[Any], Any] | None = None, equality=operator.eq) -> Any:
+        left_val = self.left.evaluate(variables, eval_action, equality)
+        right_val = self.right.evaluate(variables, eval_action, equality)
 
         print(f"Evaluating equation: {left_val} == {right_val}")
 
-        return left_val == right_val
+        return equality(left_val, right_val)
 
     def __str__(self):
         return f"{self.left} = {self.right}"

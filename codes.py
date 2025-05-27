@@ -438,6 +438,35 @@ class SGCode:
 
         return component_i_without_others, complement_components, switching_sequence
 
+    def sublink(self, component_ids: list[int]) -> SGCode:
+        """
+        Extract a sublink from the original link based on a subset of given component IDs.
+        """
+        own_crossings = set(
+            crossing.id
+            for i in component_ids
+            for crossing in self.components[i]
+            if crossing.is_over()
+        ).intersection(
+            set(
+                crossing.id
+                for i in component_ids
+                for crossing in self.components[i]
+                if crossing.is_under()
+            )
+        )
+
+        return SGCode(
+            [
+                [
+                    c
+                    for c in self.components[i]
+                    if c.id in own_crossings
+                ]
+                for i in component_ids
+            ]
+        )
+
     def apply_switching_sequence(
         self, switching_sequence: list[int]
     ) -> SGCode:
