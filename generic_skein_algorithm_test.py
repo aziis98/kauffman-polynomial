@@ -46,27 +46,28 @@ def test_synthetic_homfly():
     assert simplify(P_result) == simplify(P_expected)
 
 
-# def test_synthetic_writhe():
-#     writhe = Var("writhe")
-#     LL = Var("L")
+def test_synthetic_writhe():
+    writhe = Var("writhe")
+    LL = Var("L")
 
-#     # writhe equation: W(L+) = 1, W(L-) = -1
-#     writhe_polynomial_func = generic_skein_polynomial(
-#         writhe,
-#         [
-#             writhe(LL.positive) == 1,
-#             writhe(LL.negative) == -1,
-#         ],
-#         case_std_unknot=lambda _: 0,
-#         case_disjoint=lambda rec, components: (
-#             sum(rec(c) for c in components)
-#         )
-#     )
-#     sg_hopf = SGCode.from_tuples([
-#         [(+1, -1), (-2, -1)],
-#         [(-1, -1), (+2, -1)],
-#     ])
-#     P_result = writhe_polynomial_func(sg_hopf)
-#     P_expected = 0
+    # writhe equation: W(L+) = W(L0) + 1, W(L-) = W(L0) - 1
+    writhe_polynomial_func = generic_unknot_skein_polynomial(
+        writhe,
+        [
+            writhe(LL.positive) == writhe(LL.splice_h) + 1,
+            writhe(LL.negative) == writhe(LL.splice_v) - 1,
+        ],
+        case_std_unknot=lambda _: 0,
+        case_disjoint=lambda rec, components: (
+            sum(rec(c) for c in components)
+        )
+    )
+    sg_trefoil = SGCode.from_tuples([
+        [(+1, +1), (-2, +1), (+3, +1),
+         (-1, +1), (+2, +1), (-3, +1)]
+    ])
 
-#     assert simplify(P_result) == simplify(P_expected)
+    P_result = 1 + writhe_polynomial_func(sg_trefoil)
+    P_expected = 3
+
+    assert simplify(P_result) == simplify(P_expected)
