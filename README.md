@@ -114,6 +114,8 @@ cd kauffman-polynomial
 
 ### 3. Command Line Interface
 
+#### Main Terminal Program
+
 ```bash
 # Display help and options for the main cli program
 uv run cli.py --help
@@ -128,7 +130,7 @@ uv run cli.py --polynomial P 10_125
 uv run cli.py --pd "[[4, 2, 5, 1], [8, 6, 1, 5], [6, 3, 7, 4], [2, 7, 3, 8]]"
 ```
 
-### Raw Polynomial Output (Machine Processing)
+#### Raw Polynomial Output (for machine processing)
 
 For machine processing and scripting, use `raw.py` which outputs raw SymPy
 polynomial format without formatting:

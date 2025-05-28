@@ -123,13 +123,13 @@ def kauffman_cli():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Calculate knot/link polynomials with enhanced output",
+        description="Terminal CLI tool to calculate knot/link polynomials",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   %(prog)s 8_18                    # Compute F polynomial for knot 8_18
   %(prog)s -p P 3_1               # Compute HOMFLY polynomial for trefoil
-  %(prog)s --pd "[[1,3,2,4]]"     # Use PD code directly
+  %(prog)s --pd "[[3,6,4,1],[5,2,6,3],[1,4,2,5]]"     # Use PD code directly
         """
     )
     parser.add_argument(

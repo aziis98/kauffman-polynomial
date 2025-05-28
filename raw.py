@@ -132,7 +132,7 @@ def main():
         '--pd',
         action=SpecsAction,
         dest='specs',
-        help="PD notation string, e.g. '[[1, 2], [3, 4]]'",
+        help="PD notation string, e.g. '[[3,6,4,1],[5,2,6,3],[1,4,2,5]]'",
         metavar='PD_CODE'
     )
 
