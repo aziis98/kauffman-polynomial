@@ -44,6 +44,10 @@ class PDCodeCrossing:
         return f"PDCodeCrossing({self.i}, {self.j}, {self.k}, {self.l})"
 
     def sign(self):
+        # TODO: Add fixes for curls
+        # if self.j == self.k:
+        #     return -1
+
         if self.j - self.l == 1 or self.l - self.j > 1:
             return +1
         else:
@@ -703,21 +707,24 @@ class SGCode:
         """
         shadow = pd_code.shadow()
 
+        if len(shadow) == 0:
+            return SGCode([])
+
         shadow_indices: dict[int, tuple[int, int]] = {
-            crossing: (i, j)
+            crossing_idx: (i, j)
             for i, component in enumerate(shadow)
-            for j, crossing in enumerate(component)
+            for j, crossing_idx in enumerate(component)
         }
 
-        # print(shadow)
-
-        components: list[list[SGCodeCrossing | None]] = [
+        initial_components: list[list[SGCodeCrossing | None]] = [
             [
                 None for _ in range(len(component))
             ] for component in shadow
         ]
 
-        id = 0
+        # curls = set()
+
+        id = 1
         for crossing in pd_code:
             under_enter_arc, j, _, l = crossing
             if crossing.sign() == +1:
@@ -728,14 +735,51 @@ class SGCode:
             over_cc_idx, over_crossing_idx = shadow_indices[over_enter_arc]
             under_cc_idx, under_crossing_idx = shadow_indices[under_enter_arc]
 
-            id = id + 1
-
             over_crossing = SGCodeCrossing(
                 id, CROSSING_OVER, crossing.sign()
             )
 
-            components[over_cc_idx][over_crossing_idx] = over_crossing
-            components[under_cc_idx][under_crossing_idx] = over_crossing.opposite()
+            initial_components[over_cc_idx][over_crossing_idx] = (
+                over_crossing
+            )
+
+            # if over_cc_idx == under_cc_idx and over_crossing_idx == under_crossing_idx:
+            # curls.add(over_crossing.id)
+            # else:
+            initial_components[under_cc_idx][under_crossing_idx] = (
+                over_crossing.opposite()
+            )
+
+            id = id + 1
+
+        assert all(
+            all(crossing is not None for crossing in component)
+            for component in initial_components
+        ), "Not all crossings are filled in the components"
+
+        components: list[list[SGCodeCrossing]
+                         ] = initial_components  # type: ignore
+
+        # TODO: add missing crossings for curls by walking through the components
+        # for i, component in enumerate(components):
+        #     j = 0
+        #     while j < len(component):
+        #         crossing = component[j]
+        #         if crossing.id in curls:
+        #             component.insert(j + 1, crossing.opposite())
+        #             j += 1  # skip the newly added crossing
+        #         j += 1
+
+        # every id should appear exactly twice
+        assert all(
+            sum(
+                1
+                for component in components
+                for crossing in component
+                if crossing.id == id
+            ) == 2
+            for id in range(1, id)
+        )
 
         return SGCode(components)  # type: ignore
 
@@ -776,8 +820,6 @@ class PDCode:
                 paths[l] = j
             else:
                 paths[j] = l
-
-        # print(paths)
 
         # return graphs.connected_components(
         #     get_vertices=lambda: paths.keys(),

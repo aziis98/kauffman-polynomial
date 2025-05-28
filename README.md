@@ -74,9 +74,9 @@ defined using skein relations and can be computed from a knot diagram given its
 
 ### 1. Setup
 
-To get started, you'll need to install [uv](https://docs.astral.sh/uv/), this is
-a command line tool that simplifies running Python scripts and managing
-dependencies and virtual environments.
+To get started, you'll need to install [uv](https://docs.astral.sh/uv/), a tool
+that simplifies running Python scripts and managing dependencies and virtual
+environments.
 
 #### macOS / Linux
 

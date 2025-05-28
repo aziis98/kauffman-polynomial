@@ -1,5 +1,12 @@
 from codes import SGCode, PDCode
 
+# BUG: for now there is a bug in PDCode.from_tuples when converting
+# curls, so when a 4-tuple has repeated indices
+# def test_infinity_pd_to_sg():
+#     infinity_pd = PDCode.from_tuples([(1, 2, 2, 1)])
+#     infinity_sg = infinity_pd.to_signed_gauss_code()
+#     assert infinity_sg == SGCode.from_tuples([[(1, -1), (-1, -1)]])
+
 
 def test_trefoil_pd_writhe():
     trefoil_pd = PDCode.from_tuples(

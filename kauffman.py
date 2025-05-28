@@ -18,7 +18,7 @@ def kauffman_polynomial(link: SGCode) -> Poly:
     if len(link.components) == 0:
         return 0
 
-    component_groups: list[list[int]] = link.overlies_decomposition()
+    component_groups = link.overlies_decomposition()
 
     assert len(component_groups) > 0
 
@@ -56,30 +56,32 @@ def kauffman_polynomial(link: SGCode) -> Poly:
 
         result = 1
         for k, component_ids in enumerate(component_groups):
-            own_crossings = set(
-                crossing.id
-                for i in component_ids
-                for crossing in link.components[i]
-                if crossing.is_over()
-            ).intersection(
-                set(
-                    crossing.id
-                    for i in component_ids
-                    for crossing in link.components[i]
-                    if crossing.is_under()
-                )
-            )
+            # own_crossings = set(
+            #     crossing.id
+            #     for i in component_ids
+            #     for crossing in link.components[i]
+            #     if crossing.is_over()
+            # ).intersection(
+            #     set(
+            #         crossing.id
+            #         for i in component_ids
+            #         for crossing in link.components[i]
+            #         if crossing.is_under()
+            #     )
+            # )
 
-            new_link = SGCode(
-                [
-                    [
-                        c
-                        for c in link.components[i]
-                        if c.id in own_crossings
-                    ]
-                    for i in component_ids
-                ]
-            )
+            # new_link = SGCode(
+            #     [
+            #         [
+            #             c
+            #             for c in link.components[i]
+            #             if c.id in own_crossings
+            #         ]
+            #         for i in component_ids
+            #     ]
+            # )
+
+            new_link = link.sublink(component_ids)
 
             if k > 0:
                 result *= d
