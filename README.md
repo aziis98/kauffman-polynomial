@@ -103,7 +103,16 @@ command to make `uv` available:
 source ~/.bashrc  # or ~/.zshrc, depending on your shell
 ```
 
-### 2. Command Line Interface
+### 2. Clone the Repo
+
+To clone the repository, run the following commands in your terminal:
+
+```bash
+git clone https://github.com/aziis98/kauffman-polynomial
+cd kauffman-polynomial
+```
+
+### 3. Command Line Interface
 
 ```bash
 # Display help and options for the main cli program
