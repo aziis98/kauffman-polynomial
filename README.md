@@ -105,7 +105,7 @@ source ~/.bashrc  # or ~/.zshrc, depending on your shell
 
 ### 2. Clone the Repo
 
-To clone the repository, run the following commands in your terminal:
+To clone the repository, run the following command in your terminal:
 
 ```bash
 git clone https://github.com/aziis98/kauffman-polynomial
