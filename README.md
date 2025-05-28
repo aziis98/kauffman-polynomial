@@ -34,11 +34,11 @@ defined using skein relations and can be computed from a knot diagram given its
 
 ### Kauffman Polynomial (`F`)
 
--   **`f_polynomial`**: The normalized Kauffman polynomial
-    $`F_K(a,z) = a^{-w(K)} * L_K(a,z)`$
-
 -   **`kauffman_polynomial`**: The bracket polynomial $L(a,z)$ using skein
     relations
+
+-   **`f_polynomial`**: The normalized Kauffman polynomial
+    $`F_K(a,z) = a^{-w(K)} * L_K(a,z)`$
 
 ### HOMFLY Polynomial (`P`)
 
@@ -59,13 +59,9 @@ defined using skein relations and can be computed from a knot diagram given its
 
 ### Graph Operations
 
--   ~~**Connected components**: Find unlinked components in knot diagrams~~
-
--   ~~**Loop detection**: Identify and collapse loops in graph structures~~
-
 -   **Topology analysis**: Determine overlies relationships between components
 
-### (WIP) Skein Equation DSL
+### Skein Equation DSL
 
 -   **Expression evaluation**: Domain-specific language for mathematical
     expressions
@@ -76,9 +72,43 @@ defined using skein relations and can be computed from a knot diagram given its
 
 ## Usage
 
-### Command Line Interface
+### 1. Setup
+
+To get started, you'll need to install [uv](https://docs.astral.sh/uv/), this is
+a command line tool that simplifies running Python scripts and managing
+dependencies and virtual environments.
+
+#### macOS / Linux
+
+Using `curl`:
 
 ```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+#### Windows
+
+Open PowerShell as Administrator and run:
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+#### Post Installation
+
+After installation you may need to restart your terminal or run the following
+command to make `uv` available:
+
+```bash
+source ~/.bashrc  # or ~/.zshrc, depending on your shell
+```
+
+### 2. Command Line Interface
+
+```bash
+# Display help and options for the main cli program
+uv run cli.py --help
+
 # Calculate Kauffman polynomial for a specific knot
 uv run cli.py --polynomial F 8_18
 
@@ -95,6 +125,9 @@ For machine processing and scripting, use `raw.py` which outputs raw SymPy
 polynomial format without formatting:
 
 ```bash
+# Display help and options for raw cli command
+uv run raw.py --help
+
 # Calculate polynomials for multiple inputs (preserves command-line order)
 uv run raw.py -p F --knotinfo 3_1 --pd "[[1,3,2,4]]" --knotinfo 4_1
 
@@ -103,7 +136,6 @@ uv run raw.py -p P --pd "[[4,2,5,1],[8,6,1,5],[6,3,7,4],[2,7,3,8]]" --sg "[[(+1,
 
 # Use positional arguments for knot names
 uv run raw.py -p F 3_1 4_1 5_1
-
 ```
 
 Options, each input option produces one line of raw polynomial output

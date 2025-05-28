@@ -50,7 +50,7 @@ def test_synthetic_writhe():
     writhe = Var("writhe")
     LL = Var("L")
 
-    # writhe equation: W(L+) = W(L0) + 1, W(L-) = W(L0) - 1
+    # writhe equation??: W(L+) = W(L0) + 1, W(L-) = W(L0) - 1
     writhe_polynomial_func = generic_unknot_skein_polynomial(
         writhe,
         [

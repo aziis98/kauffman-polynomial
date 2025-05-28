@@ -18,11 +18,11 @@ def kauffman_polynomial(link: SGCode) -> Poly:
     if len(link.components) == 0:
         return 0
 
-    disconnected_components: list[list[int]] = link.overlies_decomposition()
+    component_groups: list[list[int]] = link.overlies_decomposition()
 
-    assert len(disconnected_components) > 0
+    assert len(component_groups) > 0
 
-    if len(disconnected_components) == 1:
+    if len(component_groups) == 1:
         unknot_index = link.first_switch_to_std_unknot()
 
         link_rev = link.reverse()
@@ -52,10 +52,10 @@ def kauffman_polynomial(link: SGCode) -> Poly:
             )
 
     else:
-        depth_print(f"ℹ️  split link: {disconnected_components}")
+        depth_print(f"ℹ️  split link: {component_groups}")
 
         result = 1
-        for k, component_ids in enumerate(disconnected_components):
+        for k, component_ids in enumerate(component_groups):
             own_crossings = set(
                 crossing.id
                 for i in component_ids

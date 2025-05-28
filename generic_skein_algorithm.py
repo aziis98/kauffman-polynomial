@@ -76,9 +76,9 @@ def generic_unknot_skein_polynomial(
     def skein_polynomial(link: SGCode) -> Poly:
         assert len(link.components) > 0, "Link must have at least one component"
 
-        disconnected_components = link.overlies_decomposition()
+        component_groups = link.overlies_decomposition()
 
-        if len(disconnected_components) == 1:
+        if len(component_groups) == 1:
             unknotting_index = link.first_switch_to_std_unknot()
 
             if unknotting_index == False:
@@ -141,7 +141,7 @@ def generic_unknot_skein_polynomial(
 
             return case_disjoint(skein_polynomial, [
                 link.sublink(component_ids)
-                for component_ids in disconnected_components
+                for component_ids in component_groups
             ])
 
     return skein_polynomial
