@@ -16,6 +16,9 @@ jobs:
           sudo apt-get update
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/JetBrains/JetBrainsMono/master/install_manual.sh)"
 
+          # update TYPST_FONT_PATHS for next actions
+          echo "TYPST_FONT_PATHS=/home/runner/.local/share/fonts" >> $GITHUB_ENV
+
       - name: Typst
         uses: lvignoli/typst-action@main
         with:
