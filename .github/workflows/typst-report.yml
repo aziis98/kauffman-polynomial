@@ -1,5 +1,14 @@
 name: Build Typst document
-on: [push, workflow_dispatch]
+on:
+    push:
+      branches: [ main ]
+      paths:
+        - './report/**'
+    pull_request:
+      branches: [ main ]
+      paths:
+        - './report/**'
+    workflow_dispatch:
 
 permissions:
   contents: write
@@ -28,6 +37,7 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v1
+        if: github.ref_type == 'tag'
         with:
           name: "${{ github.ref_name }} — ${{ env.DATE }}"
           files: main.pdf
