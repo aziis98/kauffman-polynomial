@@ -8,7 +8,8 @@ knot invariant that is used to distinguish knots and links in knot theory. It is
 defined using skein relations and can be computed from a knot diagram given its
 **P.D. (planar diagram) code** or its **S.G. (signed Gauss) code**.
 
-> Download the [latest version of the report](https://github.com/aziis98/kauffman-polynomial/releases/latest/download/kauffman-polynomial-report.pdf)
+> Download the
+> [latest version of the report](./report/kauffman-polynomial-report.pdf)
 
 ## Features
 
