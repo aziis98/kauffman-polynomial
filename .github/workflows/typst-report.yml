@@ -1,14 +1,5 @@
 name: Build Typst document
-on:
-    push:
-      branches: [ main ]
-      paths:
-        - './report/**'
-    pull_request:
-      branches: [ main ]
-      paths:
-        - './report/**'
-    workflow_dispatch:
+on: [push, workflow_dispatch]
 
 permissions:
   contents: write
