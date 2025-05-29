@@ -11,6 +11,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         
+      - name: Install Fonts
+        run: |
+          sudo apt-get update
+          curl -fsSL https://raw.githubusercontent.com/JetBrains/JetBrainsMono/master/install_manual.sh
+
       - name: Typst
         uses: lvignoli/typst-action@main
         with:
