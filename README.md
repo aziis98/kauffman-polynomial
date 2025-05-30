@@ -9,7 +9,7 @@ defined using skein relations and can be computed from a knot diagram given its
 **P.D. (planar diagram) code** or its **S.G. (signed Gauss) code**.
 
 > Download the
-> [latest version of the report](./report/kauffman-polynomial-report.pdf)
+> [latest version of the report](https://raw.githubusercontent.com/aziis98/kauffman-polynomial/refs/heads/main/report/kauffman-polynomial-report.pdf)
 
 ## Features
 
