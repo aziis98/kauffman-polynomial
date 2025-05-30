@@ -134,7 +134,7 @@
 
     set text(blue2)
     // Underline the link.
-    underline(offset: 1pt, stroke: blue2, it)
+    underline(offset: 1.5pt, stroke: blue2, it)
     // box(fill: blue2, outset: (x: 2pt, y: 2pt), radius: 2pt, text(fill: navy, it))
   }
 

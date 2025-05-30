@@ -353,7 +353,7 @@ Examples:
                 p_expected_raw = knot_entry[poly_label]
                 p_expected = parse_expr(
                     p_expected_raw.replace("^", "**")).expand()
-                matches = p_actual == p_expected
+                matches = p_actual['normal'] == p_expected
 
                 print(
                     f"  {Style.BRIGHT}Expected Polynomial ({poly_label}):{Style.RESET_ALL}"
