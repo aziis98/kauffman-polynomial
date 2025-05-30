@@ -17,7 +17,7 @@ defined using skein relations and can be computed from a knot diagram given its
 > one to use for the algorithm. We then describe two approaches for computing
 > the Kauffman polynomial and how to implement it in Python. Finally we try the
 > algorithm on various knots and links and compare the results with the ones
-> from the KnotInfo Database, finding an error for the knot $10_125$.
+> from the KnotInfo Database, finding an error for the knot $10_{125}$.
 
 ## Features
 
