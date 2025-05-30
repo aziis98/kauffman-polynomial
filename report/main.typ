@@ -181,7 +181,7 @@ The first problem in computational knot theory is to find a good representation 
 
 - #strong(link("https://knotinfo.math.indiana.edu/descriptions/gauss_notation.html")[Gauss codes]) -- This is very simple to generate, we just need to label each crossing with a number and then write down the sequence of numbers in the order they appear by walking along the knot. This has the problem that it is not unique, for example it does not distinguish between the trefoil knot and its mirror image.
 
-- #strong(link("https://knotinfo.math.indiana.edu/descriptions/gauss_notation.html")[Signed Gauss codes, SG codes]) -- This is an improvement over the previous representation, on the second occurrence of a number we use a $+$ or $-$ sign to indicate the handedness of the crossing.
+- #strong(link("https://knotinfo.math.indiana.edu/descriptions/gauss_notation.html")[Signed Gauss codes, SG codes]) -- This is an improvement over the previous representation, we also store the handedness of the crossing. This is the representation we are going to use for the various operations on the knots.
 
 - #strong(link("https://knotinfo.math.indiana.edu/descriptions/dt_notation.html")[Dowker-Thistlethwaite codes, DT codes]) -- This is another, more compact, representation present in KnotInfo and is based on crossing labels. We label each crossing (twice) in order from $1$ to $2n$. Each crossing will get an even and odd label and we take only the even labels in order. When an even number is in under-strand position we mark it with a minus sign.
 
@@ -334,7 +334,7 @@ We will now see how SG codes are better suited for the manipulations (switching 
 
   Another approach to keep list homogeneous is to manually splice the crossing and do a relabelling of all the arcs at each step. This causes in the worst case a continuos relabelling of all the crossings in the link at every splice and is not very efficient as our algorithm needs to do splices very often.
 
-=== Representation Comparison
+=== Comparison of the two representations
 
 Another downside of PD codes is the ordering of the crossings in-memory, walking along a component might require various jumps along the list. SG codes on the other hand have already each component in the correct order and can be walked linearly without jumps.
 

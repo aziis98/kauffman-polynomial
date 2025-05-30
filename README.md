@@ -10,6 +10,14 @@ defined using skein relations and can be computed from a knot diagram given its
 
 > Download the
 > [latest version of the report](https://raw.githubusercontent.com/aziis98/kauffman-polynomial/refs/heads/main/report/kauffman-polynomial-report.pdf)
+>
+> **Abstract.** In this project we write implement from scratch the Kauffman
+> polynomial in Python. We start with a brief detour in computational knot
+> theory and describe various representations of knots and links and find a good
+> one to use for the algorithm. We then describe two approaches for computing
+> the Kauffman polynomial and how to implement it in Python. Finally we try the
+> algorithm on various knots and links and compare the results with the ones
+> from the KnotInfo Database, finding an error for the knot $10_125$.
 
 ## Features
 
