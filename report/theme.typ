@@ -164,7 +164,7 @@
   )
 
   // Configure citation and bibliography styles.
-  set std.bibliography(style: "springer-mathphys", title: [References])
+  set std.bibliography(style: "ieee", title: [Bibliography], full: true)
 
   set figure(gap: 17pt)
   show figure: set block(above: 12.5pt, below: 15pt)
@@ -255,9 +255,7 @@
 
   // Display the bibliography, if any is given.
   if bibliography != none {
-    show std.bibliography: set text(footnote-size)
-    show std.bibliography: set block(above: 11pt)
-    show std.bibliography: pad.with(x: 0.5pt)
+    pagebreak()
     bibliography
   }
 
