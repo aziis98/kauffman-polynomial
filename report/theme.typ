@@ -164,7 +164,7 @@
   )
 
   // Configure citation and bibliography styles.
-  set std.bibliography(style: "ieee", title: [Bibliography], full: true)
+  set std.bibliography(style: "ieee", full: true)
 
   set figure(gap: 17pt)
   show figure: set block(above: 12.5pt, below: 15pt)
